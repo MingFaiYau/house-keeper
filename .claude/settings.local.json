@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(mv /Users/toasta/Desktop/Ding/code/ai-coding-2/temp-app/* /Users/toasta/Desktop/Ding/code/ai-coding-2/)",
+      "Bash(mv /Users/toasta/Desktop/Ding/code/ai-coding-2/temp-app/.* /Users/toasta/Desktop/Ding/code/ai-coding-2/)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

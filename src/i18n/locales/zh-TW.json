@@ -1,0 +1,79 @@
+{
+  "common": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯",
+    "confirm": "確認",
+    "back": "返回",
+    "print": "列印",
+    "settings": "設定",
+    "today": "今天",
+    "yesterday": "昨天",
+    "tomorrow": "明天"
+  },
+  "fdh": {
+    "moduleName": "菲傭通訊",
+    "dailyPlan": {
+      "title": "今日安排",
+      "lunch": "午餐",
+      "dinner": "晚餐",
+      "time": "時間",
+      "menu": "菜單",
+      "extraGuests": "額外客人",
+      "yes": "是",
+      "no": "否",
+      "number": "人數",
+      "notes": "備註",
+      "otherTasks": "其他事項",
+      "selectDishes": "選擇菜餚",
+      "lastUpdated": "最後更新"
+    },
+    "print": {
+      "title": "每日家務安排",
+      "printHint": "列印貼在冰箱上"
+    },
+    "settings": {
+      "title": "菲傭設定",
+      "defaultTimes": "預設時間",
+      "lunchTime": "午餐時間",
+      "dinnerTime": "晚餐時間",
+      "customDishes": "自訂菜餚",
+      "customTasks": "自訂任務",
+      "addDish": "新增菜餚",
+      "addTask": "新增任務"
+    },
+    "dishes": {
+      "scrambled-egg": "炒蛋",
+      "boiled-egg": "水煮蛋",
+      "toast": "吐司",
+      "congee": "粥",
+      "pasta": "意粉",
+      "rice": "白飯",
+      "noodles": "麵",
+      "dumplings": "雲吞",
+      "soup": "湯",
+      "vegetables": "蔬菜",
+      "chicken": "雞肉",
+      "beef": "牛肉",
+      "fish": "魚",
+      "broccoli": "西蘭花",
+      "green-veg": "青菜",
+      "fruit": "水果",
+      "dessert": "甜品"
+    },
+    "tasks": {
+      "clean-living-room": "打掃客廳",
+      "clean-bedroom": "打掃睡房",
+      "wash-clothes": "洗衣服",
+      "iron-clothes": "燙衣服",
+      "prepare-breakfast-tomorrow": "準備明天早餐",
+      "clean-kitchen": "清潔廚房",
+      "buy-groceries": "買菜"
+    }
+  },
+  "nav": {
+    "baby": "寶寶照顧",
+    "fdh": "菲傭"
+  }
+}

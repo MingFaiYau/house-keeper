@@ -1,0 +1,79 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "back": "Back",
+    "print": "Print",
+    "settings": "Settings",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow"
+  },
+  "fdh": {
+    "moduleName": "FDH Communication",
+    "dailyPlan": {
+      "title": "Today's Schedule",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "time": "Time",
+      "menu": "Menu",
+      "extraGuests": "Extra Guests",
+      "yes": "Yes",
+      "no": "No",
+      "number": "Number",
+      "notes": "Notes",
+      "otherTasks": "Other Tasks",
+      "selectDishes": "Select Dishes",
+      "lastUpdated": "Last Updated"
+    },
+    "print": {
+      "title": "Daily House Tasks",
+      "printHint": "Print and stick on fridge"
+    },
+    "settings": {
+      "title": "FDH Settings",
+      "defaultTimes": "Default Times",
+      "lunchTime": "Lunch Time",
+      "dinnerTime": "Dinner Time",
+      "customDishes": "Custom Dishes",
+      "customTasks": "Custom Tasks",
+      "addDish": "Add Dish",
+      "addTask": "Add Task"
+    },
+    "dishes": {
+      "scrambled-egg": "Scrambled Egg",
+      "boiled-egg": "Boiled Egg",
+      "toast": "Toast",
+      "congee": "Congee",
+      "pasta": "Pasta",
+      "rice": "Rice",
+      "noodles": "Noodles",
+      "dumplings": "Dumplings",
+      "soup": "Soup",
+      "vegetables": "Vegetables",
+      "chicken": "Chicken",
+      "beef": "Beef",
+      "fish": "Fish",
+      "broccoli": "Broccoli",
+      "green-veg": "Green Vegetables",
+      "fruit": "Fruit",
+      "dessert": "Dessert"
+    },
+    "tasks": {
+      "clean-living-room": "Clean living room",
+      "clean-bedroom": "Clean bedroom",
+      "wash-clothes": "Wash clothes",
+      "iron-clothes": "Iron clothes",
+      "prepare-breakfast-tomorrow": "Prepare tomorrow breakfast",
+      "clean-kitchen": "Clean kitchen",
+      "buy-groceries": "Buy groceries"
+    }
+  },
+  "nav": {
+    "baby": "Baby Care",
+    "fdh": "FDH"
+  }
+}

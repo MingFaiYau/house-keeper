@@ -1,0 +1,79 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "confirm": "确认",
+    "back": "返回",
+    "print": "打印",
+    "settings": "设置",
+    "today": "今天",
+    "yesterday": "昨天",
+    "tomorrow": "明天"
+  },
+  "fdh": {
+    "moduleName": "菲佣通讯",
+    "dailyPlan": {
+      "title": "今日安排",
+      "lunch": "午餐",
+      "dinner": "晚餐",
+      "time": "时间",
+      "menu": "菜单",
+      "extraGuests": "额外客人",
+      "yes": "是",
+      "no": "否",
+      "number": "人数",
+      "notes": "备注",
+      "otherTasks": "其他事项",
+      "selectDishes": "选择菜式",
+      "lastUpdated": "最后更新"
+    },
+    "print": {
+      "title": "每日家务安排",
+      "printHint": "打印贴在冰箱上"
+    },
+    "settings": {
+      "title": "菲佣设置",
+      "defaultTimes": "默认时间",
+      "lunchTime": "午餐时间",
+      "dinnerTime": "晚餐时间",
+      "customDishes": "自定义菜式",
+      "customTasks": "自定义任务",
+      "addDish": "新增菜式",
+      "addTask": "新增任务"
+    },
+    "dishes": {
+      "scrambled-egg": "炒蛋",
+      "boiled-egg": "水煮蛋",
+      "toast": "吐司",
+      "congee": "粥",
+      "pasta": "意粉",
+      "rice": "白饭",
+      "noodles": "面",
+      "dumplings": "云吞",
+      "soup": "汤",
+      "vegetables": "蔬菜",
+      "chicken": "鸡肉",
+      "beef": "牛肉",
+      "fish": "鱼",
+      "broccoli": "西兰花",
+      "green-veg": "青菜",
+      "fruit": "水果",
+      "dessert": "甜品"
+    },
+    "tasks": {
+      "clean-living-room": "打扫客厅",
+      "clean-bedroom": "打扫睡房",
+      "wash-clothes": "洗衣服",
+      "iron-clothes": "烫衣服",
+      "prepare-breakfast-tomorrow": "准备明天早餐",
+      "clean-kitchen": "清洁厨房",
+      "buy-groceries": "买菜"
+    }
+  },
+  "nav": {
+    "baby": "宝宝照顾",
+    "fdh": "菲佣"
+  }
+}
