@@ -3,13 +3,16 @@
 export const MEAL_PREP_KEY = 'meal-prep-settings';
 export const CHORE_KEY = 'chore-settings';
 
+// Dish category
+export type DishCategory = 'fruit_snacks' | 'carbs' | 'main' | 'soup' | 'dessert';
+
 // Dish with quantity/portion for ingredients
 export interface DishItem {
   id: string;
   nameZh: string;
   nameEn: string;
   icon: string;
-  category: 'breakfast' | 'main' | 'side' | 'dessert';
+  category: DishCategory;
 }
 
 // Dish course (1st dish, 2nd dish, etc.) with ingredient details
@@ -20,21 +23,27 @@ export interface DishCourse {
   ingredients: string; // quantity/portion suggestions
 }
 
-// Single meal (lunch or dinner)
+// People info for a meal
+export interface MealPeopleInfo {
+  familyMembers: number; // 0, 1, or 2 (sir and madam)
+  guests: number; // number of guests
+  remarks: string; // special remarks about guests
+}
+
+// Single meal (lunch, dinner, breakfast, afternoon tea, etc.)
 export interface Meal {
+  type: string; // 'lunch', 'dinner', 'breakfast', 'afternoon_tea', etc.
   time: string;
+  peopleInfo: MealPeopleInfo;
   courses: DishCourse[];
-  extraGuests: boolean;
-  extraGuestCount: number;
   notes: string;
 }
 
-// Daily meal plan
+// Daily meal plan - support flexible meal types
 export interface DailyPlan {
   id?: number;
   date: string;
-  lunch: Meal;
-  dinner: Meal;
+  meals: Record<string, Meal>; // flexible meals: lunch, dinner, breakfast, afternoon_tea, etc.
   lastUpdated: string;
 }
 
@@ -68,19 +77,23 @@ export interface MealPrepSettings {
 
 // Default dishes
 export const DEFAULT_DISHES: DishItem[] = [
+  // 水果及小食 Fruit & Snacks
+  { id: 'fruit', nameZh: '水果', nameEn: 'Fruit', icon: '🍎', category: 'fruit_snacks' },
+  { id: 'dessert', nameZh: '甜品', nameEn: 'Dessert', icon: '🧁', category: 'dessert' },
+
   // 蔬菜類 Vegetables
-  { id: 'oil-mustard', nameZh: '油麥菜', nameEn: 'Oil Mustard', icon: '🥬', category: 'side' },
-  { id: 'spinach', nameZh: '菠菜', nameEn: 'Spinach', icon: '🥬', category: 'side' },
-  { id: 'sweet-potato-leaf', nameZh: '番薯葉', nameEn: 'Sweet Potato Leaf', icon: '🥬', category: 'side' },
-  { id: 'cucumber', nameZh: '黃瓜', nameEn: 'Cucumber', icon: '🥒', category: 'side' },
-  { id: 'loofah', nameZh: '脆肉瓜', nameEn: 'Loofah', icon: '🥒', category: 'side' },
-  { id: 'cabbage', nameZh: '椰菜', nameEn: 'Cabbage', icon: '🥬', category: 'side' },
-  { id: 'broccoli', nameZh: '西蘭花', nameEn: 'Broccoli', icon: '🥦', category: 'side' },
-  { id: 'cauliflower', nameZh: '花菜', nameEn: 'Cauliflower', icon: '🥦', category: 'side' },
-  { id: 'white-radish', nameZh: '白蘿蔔', nameEn: 'White Radish', icon: '🥕', category: 'side' },
-  { id: 'carrot', nameZh: '胡蘿蔔', nameEn: 'Carrot', icon: '🥕', category: 'side' },
-  { id: 'enoki-mushroom', nameZh: '金針菇', nameEn: 'Enoki Mushroom', icon: '🍄', category: 'side' },
-  { id: 'choy-sum', nameZh: '菜心', nameEn: 'Choy Sum', icon: '🥬', category: 'side' },
+  { id: 'oil-mustard', nameZh: '油麥菜', nameEn: 'Oil Mustard', icon: '🥬', category: 'main' },
+  { id: 'spinach', nameZh: '菠菜', nameEn: 'Spinach', icon: '🥬', category: 'main' },
+  { id: 'sweet-potato-leaf', nameZh: '番薯葉', nameEn: 'Sweet Potato Leaf', icon: '🥬', category: 'main' },
+  { id: 'cucumber', nameZh: '黃瓜', nameEn: 'Cucumber', icon: '🥒', category: 'main' },
+  { id: 'loofah', nameZh: '脆肉瓜', nameEn: 'Loofah', icon: '🥒', category: 'main' },
+  { id: 'cabbage', nameZh: '椰菜', nameEn: 'Cabbage', icon: '🥬', category: 'main' },
+  { id: 'broccoli', nameZh: '西蘭花', nameEn: 'Broccoli', icon: '🥦', category: 'main' },
+  { id: 'cauliflower', nameZh: '花菜', nameEn: 'Cauliflower', icon: '🥦', category: 'main' },
+  { id: 'white-radish', nameZh: '白蘿蔔', nameEn: 'White Radish', icon: '🥕', category: 'main' },
+  { id: 'carrot', nameZh: '胡蘿蔔', nameEn: 'Carrot', icon: '🥕', category: 'main' },
+  { id: 'enoki-mushroom', nameZh: '金針菇', nameEn: 'Enoki Mushroom', icon: '🍄', category: 'main' },
+  { id: 'choy-sum', nameZh: '菜心', nameEn: 'Choy Sum', icon: '🥬', category: 'main' },
 
   // 肉蛋類 Meat & Eggs
   { id: 'pork-ribs', nameZh: '排骨', nameEn: 'Pork Ribs', icon: '🍖', category: 'main' },
@@ -91,23 +104,19 @@ export const DEFAULT_DISHES: DishItem[] = [
   { id: 'beef', nameZh: '牛肉', nameEn: 'Beef', icon: '🥩', category: 'main' },
   { id: 'lamb', nameZh: '羊肉', nameEn: 'Lamb', icon: '🍖', category: 'main' },
   { id: 'meatball', nameZh: '肉丸', nameEn: 'Meatball', icon: '🍡', category: 'main' },
-  { id: 'egg', nameZh: '雞蛋', nameEn: 'Egg', icon: '🥚', category: 'side' },
-  { id: 'scrambled-egg', nameZh: '炒蛋', nameEn: 'Scrambled Egg', icon: '🍳', category: 'breakfast' },
+  { id: 'egg', nameZh: '雞蛋', nameEn: 'Egg', icon: '🥚', category: 'main' },
+  { id: 'scrambled-egg', nameZh: '炒蛋', nameEn: 'Scrambled Egg', icon: '🍳', category: 'main' },
 
-  // 主食 Others
-  { id: 'rice', nameZh: '白飯', nameEn: 'Rice', icon: '🍚', category: 'main' },
-  { id: 'congee', nameZh: '粥', nameEn: 'Congee', icon: '🥣', category: 'breakfast' },
-  { id: 'noodles', nameZh: '麵', nameEn: 'Noodles', icon: '🍜', category: 'main' },
-  { id: 'pasta', nameZh: '意粉', nameEn: 'Pasta', icon: '🍝', category: 'main' },
-  { id: 'toast', nameZh: '吐司', nameEn: 'Toast', icon: '🍞', category: 'breakfast' },
-  { id: 'dumplings', nameZh: '雲吞', nameEn: 'Dumplings', icon: '🥟', category: 'main' },
+  // 主食 Carbs
+  { id: 'rice', nameZh: '白飯', nameEn: 'Rice', icon: '🍚', category: 'carbs' },
+  { id: 'congee', nameZh: '粥', nameEn: 'Congee', icon: '🥣', category: 'carbs' },
+  { id: 'noodles', nameZh: '麵', nameEn: 'Noodles', icon: '🍜', category: 'carbs' },
+  { id: 'pasta', nameZh: '意粉', nameEn: 'Pasta', icon: '🍝', category: 'carbs' },
+  { id: 'toast', nameZh: '吐司', nameEn: 'Toast', icon: '🍞', category: 'carbs' },
+  { id: 'dumplings', nameZh: '雲吞', nameEn: 'Dumplings', icon: '🥟', category: 'carbs' },
 
   // 湯類 Soup
-  { id: 'soup', nameZh: '湯', nameEn: 'Soup', icon: '🍲', category: 'side' },
-
-  // 水果甜品 Fruit & Dessert
-  { id: 'fruit', nameZh: '水果', nameEn: 'Fruit', icon: '🍎', category: 'dessert' },
-  { id: 'dessert', nameZh: '甜品', nameEn: 'Dessert', icon: '🧁', category: 'dessert' },
+  { id: 'soup', nameZh: '湯', nameEn: 'Soup', icon: '🍲', category: 'soup' },
 ];
 
 // Default chores
@@ -144,20 +153,26 @@ export const DEFAULT_CHORE_SETTINGS: ChoreSettings = {
 };
 
 // Helper to create empty meal
-export const createEmptyMeal = (time: string): Meal => ({
+export const createEmptyMeal = (type: string, time: string): Meal => ({
+  type,
   time,
+  peopleInfo: {
+    familyMembers: 0,
+    guests: 0,
+    remarks: '',
+  },
   courses: [
     { id: '1', courseNumber: 1, dish: null, ingredients: '' },
   ],
-  extraGuests: false,
-  extraGuestCount: 0,
   notes: '',
 });
 
 // Helper to create default daily plan
 export const createDefaultDailyPlan = (date: string, settings: MealPrepSettings): DailyPlan => ({
   date,
-  lunch: createEmptyMeal(settings.defaultLunchTime || '12:00'),
-  dinner: createEmptyMeal(settings.defaultDinnerTime || '19:00'),
+  meals: {
+    lunch: createEmptyMeal('lunch', settings.defaultLunchTime || '12:00'),
+    dinner: createEmptyMeal('dinner', settings.defaultDinnerTime || '19:00'),
+  },
   lastUpdated: new Date().toISOString(),
 });

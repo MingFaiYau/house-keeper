@@ -21,60 +21,42 @@ import CloseIcon from '@mui/icons-material/Close';
 import { format, parseISO, getDay } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMealPrepStore } from '../../stores/fdhStore';
+import { type DailyPlan, type Meal } from '../../types/fdh';
 import { getLangText } from '../../i18n';
 import DateSelector from '../../components/DateSelector';
 
+const MEAL_TYPES = [
+  { id: 'breakfast', icon: '🌅', labelZh: '早餐', labelEn: 'Breakfast' },
+  { id: 'lunch', icon: '🍽️', labelZh: '午餐', labelEn: 'Lunch' },
+  { id: 'afternoon_tea', icon: '☕', labelZh: '下午茶', labelEn: 'Afternoon Tea' },
+  { id: 'dinner', icon: '🌙', labelZh: '晚餐', labelEn: 'Dinner' },
+];
+
 // Encode plan data for sharing - simplified version
 const encodePlanData = (date: string, plan: DailyPlan): string => {
-  // Only include essential display data
+  const meals = plan.meals || {};
+  const mealData: Record<string, unknown> = {};
+
+  Object.entries(meals).forEach(([type, meal]) => {
+    const showDetails = meal.peopleInfo.familyMembers > 0 || meal.peopleInfo.guests > 0;
+    mealData[type] = {
+      t: meal.time,
+      p: meal.peopleInfo,
+      c: showDetails ? meal.courses.filter(c => c.dish).map(c => ({
+        n: c.dish?.icon + ' ' + c.dish?.nameZh,
+        i: c.ingredients || '',
+      })) : [],
+      n: meal.notes || '',
+    };
+  });
+
   const simplified = {
     d: date,
-    l: {
-      t: plan.lunch.time,
-      c: plan.lunch.courses.filter(c => c.dish).map(c => ({
-        n: c.dish?.icon + ' ' + c.dish?.nameZh,
-        i: c.ingredients || '',
-      })),
-      eg: plan.lunch.extraGuests,
-      egc: plan.lunch.extraGuestCount,
-      n: plan.lunch.notes || '',
-    },
-    dn: {
-      t: plan.dinner.time,
-      c: plan.dinner.courses.filter(c => c.dish).map(c => ({
-        n: c.dish?.icon + ' ' + c.dish?.nameZh,
-        i: c.ingredients || '',
-      })),
-      eg: plan.dinner.extraGuests,
-      egc: plan.dinner.extraGuestCount,
-      n: plan.dinner.notes || '',
-    },
+    m: mealData,
     u: plan.lastUpdated,
   };
   return btoa(encodeURIComponent(JSON.stringify(simplified)));
 };
-
-interface DailyPlan {
-  date: string;
-  lunch: Meal;
-  dinner: Meal;
-  lastUpdated: string;
-}
-
-interface Meal {
-  time: string;
-  courses: DishCourse[];
-  extraGuests: boolean;
-  extraGuestCount: number;
-  notes: string;
-}
-
-interface DishCourse {
-  id: string;
-  courseNumber: number;
-  dish: { id: string; nameZh: string; nameEn: string; icon: string } | null;
-  ingredients: string;
-}
 
 const PrintView: React.FC = () => {
   const theme = useTheme();
@@ -127,58 +109,96 @@ const PrintView: React.FC = () => {
 
   const getTitle = () => getLangText('分享膳食', 'Share Meal');
 
-  const renderMealSection = (mealType: 'lunch' | 'dinner') => {
-    const meal = currentPlan[mealType];
+  const getMealLabel = (type: string) => {
+    const mealType = MEAL_TYPES.find(m => m.id === type);
+    if (mealType) {
+      return getLangText(mealType.labelZh, mealType.labelEn);
+    }
+    return type;
+  };
+
+  const getMealIcon = (type: string) => {
+    const mealType = MEAL_TYPES.find(m => m.id === type);
+    return mealType?.icon || '🍽️';
+  };
+
+  const renderMealSection = (mealType: string, meal: Meal) => {
+    const showDetails = meal.peopleInfo.familyMembers > 0 || meal.peopleInfo.guests > 0;
     const isLunch = mealType === 'lunch';
-    const mealLabel = isLunch ? getLangText('午餐', 'Lunch') : getLangText('晚餐', 'Dinner');
-    const timeLabel = isLunch ? getLangText('午餐時間', 'Lunch Time') : getLangText('晚餐時間', 'Dinner Time');
+    const timeLabel = isLunch ? getLangText('午餐時間', 'Lunch Time') : mealType === 'dinner' ? getLangText('晚餐時間', 'Dinner Time') : getLangText('時間', 'Time');
 
     return (
       <Box sx={{ border: isDark ? '1px solid #555' : '1px solid #ccc', p: 2, borderRadius: 1 }}>
         <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, textAlign: 'center', color: isDark ? '#fff' : '#000' }}>
-          🍽️ {mealLabel}
+          {getMealIcon(mealType)} {getMealLabel(mealType)}
         </Typography>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" sx={{ fontWeight: 500, color: isDark ? '#ccc' : '#000' }}>
-            {timeLabel}: {meal.time}
+
+        {/* People Info */}
+        <Box sx={{ mb: 2, p: 1, bgcolor: isDark ? '#444' : '#f0f0f0', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ color: isDark ? '#ccc' : '#000' }}>
+            {getLangText('用餐人數', 'Diners')}:
+            {meal.peopleInfo.familyMembers > 0 && ` ${getLangText('主人', 'Family')}${meal.peopleInfo.familyMembers}${getLangText('位', '')}`}
+            {meal.peopleInfo.guests > 0 && `, ${getLangText('客人', 'Guests')}${meal.peopleInfo.guests}${getLangText('位', '')}`}
+            {meal.peopleInfo.familyMembers === 0 && meal.peopleInfo.guests === 0 && ` ${getLangText('工人姐姐自行安排', 'FDH plans her own')}`}
           </Typography>
+          {meal.peopleInfo.remarks && (
+            <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666', mt: 1 }}>
+              {getLangText('備註', 'Remarks')}: {meal.peopleInfo.remarks}
+            </Typography>
+          )}
         </Box>
 
-        {/* Courses */}
-        {meal.courses.filter(c => c.dish).map((course) => (
-          <Box
-            key={course.id}
-            sx={{
-              mb: 1,
-              p: 1,
-              bgcolor: isDark ? '#444' : '#f0f0f0',
-              borderRadius: 1,
-              border: isDark ? '1px solid #555' : '1px solid #ddd',
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#fff' : '#000' }}>
-              #{course.courseNumber} {course.dish?.icon} {getLangText(course.dish?.nameZh || '', course.dish?.nameEn || '')}
-            </Typography>
-            {course.ingredients && (
-              <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666' }}>
-                {getLangText('食材', 'Ingredients')}: {course.ingredients}
-              </Typography>
-            )}
-          </Box>
-        ))}
-        {meal.courses.filter(c => c.dish).length === 0 && (
-          <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666' }}>-</Typography>
+        {/* If no one to cook for, show message */}
+        {!showDetails && (
+          <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666', mb: 2, fontStyle: 'italic' }}>
+            {getLangText('工人姐姐自行安排膳食', 'FDH can plan her own meal')}
+          </Typography>
         )}
 
-        {/* Extra Guests */}
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" sx={{ color: isDark ? '#ccc' : '#000' }}>
-            {getLangText('額外客人', 'Extra Guests')}: {meal.extraGuests ? `${getLangText('是', 'Yes')} (${meal.extraGuestCount} ${getLangText('人', 'persons')})` : getLangText('否', 'No')}
-          </Typography>
-        </Box>
+        {/* Time */}
+        {showDetails && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: isDark ? '#ccc' : '#000' }}>
+              {timeLabel}: {meal.time}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Courses */}
+        {showDetails && (
+          <>
+            <Typography variant="body2" sx={{ fontWeight: 500, color: isDark ? '#ccc' : '#000', mb: 1 }}>
+              {getLangText('菜式', 'Dishes')}:
+            </Typography>
+            {meal.courses.filter(c => c.dish).map((course) => (
+              <Box
+                key={course.id}
+                sx={{
+                  mb: 1,
+                  p: 1,
+                  bgcolor: isDark ? '#444' : '#f0f0f0',
+                  borderRadius: 1,
+                  border: isDark ? '1px solid #555' : '1px solid #ddd',
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 600, color: isDark ? '#fff' : '#000' }}>
+                  #{course.courseNumber} {course.dish?.icon} {getLangText(course.dish?.nameZh || '', course.dish?.nameEn || '')}
+                </Typography>
+                {course.ingredients && (
+                  <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666' }}>
+                    {getLangText('食材', 'Ingredients')}: {course.ingredients}
+                  </Typography>
+                )}
+              </Box>
+            ))}
+            {meal.courses.filter(c => c.dish).length === 0 && (
+              <Typography variant="body2" sx={{ color: isDark ? '#aaa' : '#666' }}>-</Typography>
+            )}
+          </>
+        )}
 
         {/* Notes */}
-        {meal.notes && (
+        {showDetails && meal.notes && (
           <Box sx={{ mt: 2 }}>
             <Typography variant="body2" sx={{ fontWeight: 500, color: isDark ? '#ccc' : '#000' }}>
               {getLangText('備註', 'Notes')}:
@@ -191,6 +211,9 @@ const PrintView: React.FC = () => {
       </Box>
     );
   };
+
+  const meals = currentPlan?.meals || {};
+  const mealList = Object.entries(meals);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
@@ -246,10 +269,16 @@ const PrintView: React.FC = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4, mb: 4 }}>
-            {renderMealSection('lunch')}
-            {renderMealSection('dinner')}
+          {/* Render all meals */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: mealList.length > 1 ? '1fr 1fr' : '1fr' }, gap: 4, mb: 4 }}>
+            {mealList.map(([type, meal]) => renderMealSection(type, meal))}
           </Box>
+
+          {mealList.length === 0 && (
+            <Typography variant="body1" sx={{ textAlign: 'center', color: isDark ? '#aaa' : '#666' }}>
+              {getLangText('當天沒有安排膳食', 'No meals scheduled for this day')}
+            </Typography>
+          )}
         </Box>
       </Container>
 
