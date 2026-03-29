@@ -9,7 +9,11 @@
       "Bash(npm run:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(chmod +x /Users/toasta/Desktop/Ding/code/ai-coding-2/.git/hooks/pre-commit)"
+    ],
+    "additionalDirectories": [
+      "/Users/toasta/Desktop/Ding/code/ai-coding-2/.git/hooks"
     ]
   }
 }

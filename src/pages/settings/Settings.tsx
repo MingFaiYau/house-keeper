@@ -25,6 +25,7 @@ import ChildCareIcon from '@mui/icons-material/ChildCare';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
 
+// Version is updated automatically by pre-commit hook
 const APP_VERSION = '1.0.0';
 
 const AppSettings: React.FC = () => {
