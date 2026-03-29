@@ -61,10 +61,10 @@ const DishMaintenance: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
+      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
         <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/')}>
+          <IconButton edge="start" onClick={() => navigate('/household')}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
@@ -73,7 +73,8 @@ const DishMaintenance: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
+        <Container maxWidth="lg">
         {/* Add Custom Dish Section */}
         <Card sx={{ mb: 3, bgcolor: isDark ? '#1e1e1e' : 'white' }}>
           <CardContent>
@@ -170,6 +171,7 @@ const DishMaintenance: React.FC = () => {
           </CardContent>
         </Card>
       </Container>
+      </Box>
     </Box>
   );
 };

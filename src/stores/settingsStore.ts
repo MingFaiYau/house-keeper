@@ -4,12 +4,18 @@ import i18n from '../i18n';
 interface AppSettings {
   language: string;
   theme: 'light' | 'dark' | 'system';
+  modules: {
+    household: boolean;
+    baby: boolean;
+  };
 }
 
 interface SettingsState {
   settings: AppSettings;
   setLanguage: (lang: string) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setModuleEnabled: (module: 'household' | 'baby', enabled: boolean) => void;
+  isModuleEnabled: (module: 'household' | 'baby') => boolean;
   getEffectiveTheme: () => 'light' | 'dark';
 }
 
@@ -24,6 +30,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: {
     language: 'zh-TW',
     theme: 'light',
+    modules: {
+      household: true,
+      baby: true,
+    },
   },
 
   setLanguage: (lang: string) => {
@@ -31,8 +41,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set((state) => ({
       settings: { ...state.settings, language: lang },
     }));
-    // Save to localStorage
-    localStorage.setItem('app-settings', JSON.stringify({ ...get().settings, language: lang }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
   },
 
   setTheme: (theme: 'light' | 'dark' | 'system') => {
@@ -40,8 +49,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set((state) => ({
       settings: { ...state.settings, theme },
     }));
-    // Save to localStorage
-    localStorage.setItem('app-settings', JSON.stringify({ ...get().settings, theme }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  setModuleEnabled: (module: 'household' | 'baby', enabled: boolean) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        modules: {
+          ...state.settings.modules,
+          [module]: enabled,
+        },
+      },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  isModuleEnabled: (module: 'household' | 'baby') => {
+    return get().settings.modules?.[module] ?? true;
   },
 
   getEffectiveTheme: () => {

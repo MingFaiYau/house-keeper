@@ -3,17 +3,23 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
 // Pages
+import HomePage from './pages/home/HomePage';
 import MealPrepIndex from './pages/meal/MealPrepIndex';
 import DailyPlan from './pages/meal/DailyPlan';
-import PrintView from './pages/meal/PrintView';
+import SummaryView from './pages/meal/SummaryView';
 import DishMaintenance from './pages/meal/DishMaintenance';
 import SharedView from './pages/meal/SharedView';
 import ChoresPage from './pages/chores/ChoresPage';
 import AppSettings from './pages/settings/Settings';
 import NotFoundPage from './pages/NotFound';
+import BabyFeedingCycle from './pages/baby/BabyFeedingCycle';
+import BabyIndex from './pages/baby/BabyIndex';
+import BabyProfilePage from './pages/baby/BabyProfilePage';
+import BabyPageGuard from './components/baby/BabyPageGuard';
 
 // Components
 import BottomNav from './components/layout/BottomNav';
+import ModuleGuard from './components/ModuleGuard';
 
 // Initialize i18n
 import './i18n';
@@ -80,31 +86,28 @@ const App: React.FC = () => {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
-          {/* Home / Meal & Household Index - now at root */}
-          <Route path="/" element={<MealPrepIndex />} />
-          <Route path="/home" element={<Navigate to="/" replace />} />
+          {/* Home Module */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<HomePage />} />
 
-          {/* Meal Preparation Module */}
-          <Route path="/meal" element={<Navigate to="/" replace />} />
-          <Route path="/meal/daily" element={<DailyPlan />} />
-          <Route path="/meal/print" element={<PrintView />} />
-          <Route path="/meal/dishes" element={<DishMaintenance />} />
-
-          {/* Share View - Read only page for helper - NO nav bars */}
-          <Route path="/share" element={<SharedView />} />
-
-          {/* Household Chores Module */}
-          <Route path="/chores" element={<ChoresPage />} />
+          {/* Household Module */}
+          <Route path="/household" element={<ModuleGuard module="household"><MealPrepIndex /></ModuleGuard>} />
+          <Route path="/household/meal" element={<ModuleGuard module="household"><DailyPlan /></ModuleGuard>} />
+          <Route path="/household/meal/summary" element={<ModuleGuard module="household"><SummaryView /></ModuleGuard>} />
+          <Route path="/household/meal/share" element={<ModuleGuard module="household"><SharedView /></ModuleGuard>} />
+          <Route path="/household/meal/dishes" element={<ModuleGuard module="household"><DishMaintenance /></ModuleGuard>} />
+          <Route path="/household/chores" element={<ModuleGuard module="household"><ChoresPage /></ModuleGuard>} />
 
           {/* App Settings (Language & Theme) */}
           <Route path="/settings" element={<AppSettings />} />
 
-          {/* Baby Module - Placeholder */}
-          <Route path="/baby" element={<PlaceholderPage title="寶寶成長記錄" subtitle="Baby Care Tracker" />} />
-          <Route path="/baby/add" element={<PlaceholderPage title="新增活動" subtitle="Add Activity" />} />
-          <Route path="/baby/history" element={<PlaceholderPage title="歷史記錄" subtitle="History" />} />
-          <Route path="/baby/profile" element={<PlaceholderPage title="寶寶資料" subtitle="Baby Profile" />} />
-          <Route path="/baby/stats" element={<PlaceholderPage title="統計" subtitle="Statistics" />} />
+          {/* Baby Module */}
+          <Route path="/baby" element={<ModuleGuard module="baby"><BabyIndex /></ModuleGuard>} />
+          <Route path="/baby/feeding" element={<ModuleGuard module="baby"><BabyPageGuard><BabyFeedingCycle /></BabyPageGuard></ModuleGuard>} />
+          <Route path="/baby/add" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="新增活動" subtitle="Add Activity" /></BabyPageGuard></ModuleGuard>} />
+          <Route path="/baby/history" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="歷史記錄" subtitle="History" /></BabyPageGuard></ModuleGuard>} />
+          <Route path="/baby/profile" element={<ModuleGuard module="baby"><BabyProfilePage /></ModuleGuard>} />
+          <Route path="/baby/stats" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="統計" subtitle="Statistics" /></BabyPageGuard></ModuleGuard>} />
 
           {/* 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />
@@ -118,7 +121,7 @@ const App: React.FC = () => {
 // Wrapper to hide BottomNav on share page
 const BottomNavWrapper: React.FC = () => {
   const location = useLocation();
-  if (location.pathname === '/share') return null;
+  if (location.pathname.startsWith('/household/meal/share')) return null;
   return <BottomNav />;
 };
 

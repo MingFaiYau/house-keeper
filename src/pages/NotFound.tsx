@@ -35,7 +35,7 @@ const NotFoundPage: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/household/meal')}
           size="large"
         >
           {getLangText('返回首頁', 'Go to Home')}

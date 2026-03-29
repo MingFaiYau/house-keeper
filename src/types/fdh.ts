@@ -2,6 +2,7 @@
 
 export const MEAL_PREP_KEY = 'meal-prep-settings';
 export const CHORE_KEY = 'chore-settings';
+export const BABY_CYCLE_KEY = 'baby-cycle-records';
 
 // Dish category
 export type DishCategory = 'fruit_snacks' | 'carbs' | 'main' | 'soup' | 'dessert';
@@ -176,3 +177,59 @@ export const createDefaultDailyPlan = (date: string, settings: MealPrepSettings)
   },
   lastUpdated: new Date().toISOString(),
 });
+
+// Baby Cycle Types
+export interface NailTrim {
+  leftHand: boolean;
+  rightHand: boolean;
+  leftFoot: boolean;
+  rightFoot: boolean;
+}
+
+export interface DiaperChange {
+  urine: number;
+  popo: number;
+  manyPopo: number;
+}
+
+export interface StepRecord {
+  time: string;
+  skipped: boolean;
+  skipReason: string;
+  diaperChanges: DiaperChange;
+  burpDone: boolean;
+  bathDone: boolean;
+  nailTrim: NailTrim;
+  playOptions: string[];
+}
+
+export interface BabyCycleDay {
+  id?: number;
+  date: string;
+  babyId: string;
+  cycles: Record<number, StepRecord>;
+}
+
+export interface BabyProfile {
+  id: string;
+  nameZh: string;
+  nameEn: string;
+  birthDate: string;
+  gender: 'male' | 'female';
+  photo?: string;
+}
+
+export interface BabySettings {
+  id?: number;
+  key: string;
+  profiles: BabyProfile[];
+  defaultBabyId?: string;
+}
+
+// Default baby settings
+export const DEFAULT_BABY_SETTINGS: BabySettings = {
+  key: 'baby-settings',
+  profiles: [],
+};
+
+export type BabyCycleRecords = Record<string, Record<number, StepRecord>>; // date -> cycleIdx -> stepIdx -> record // key is date string (yyyy-MM-dd), value is cycles indexed by cycle number

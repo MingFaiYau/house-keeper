@@ -24,7 +24,7 @@ import {
   ToggleButtonGroup,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import PrintIcon from '@mui/icons-material/Print';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -366,10 +366,10 @@ const DailyPlan: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
+      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
         <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/')}>
+          <IconButton edge="start" onClick={() => navigate('/household')}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
@@ -378,18 +378,19 @@ const DailyPlan: React.FC = () => {
           <IconButton onClick={() => setResetDialogOpen(true)} title={getLangText('重設', 'Reset')}>
             <RestartAltIcon />
           </IconButton>
-          <IconButton onClick={() => navigate(`/meal/print?date=${currentDate}`)} title={getLangText('分享', 'Share')}>
-            <PrintIcon />
+          <IconButton onClick={() => navigate(`/household/meal/summary?date=${currentDate}`)} title={getLangText('總結', 'Summary')}>
+            <ListAltIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ py: 3 }}>
-        <DateSelector
-          currentDate={currentDate}
-          onDateChange={setCurrentDate}
-          isDark={isDark}
-        />
+      <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
+        <Container maxWidth="sm">
+          <DateSelector
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+            isDark={isDark}
+          />
 
         {/* Render all meals */}
         {mealList.map(({ type, meal }) => renderMealSection(type, meal))}
@@ -412,6 +413,7 @@ const DailyPlan: React.FC = () => {
           </Typography>
         </Box>
       </Container>
+      </Box>
 
       {/* Reset Confirmation Dialog */}
       <Dialog open={resetDialogOpen} onClose={() => setResetDialogOpen(false)}>

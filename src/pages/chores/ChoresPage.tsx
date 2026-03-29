@@ -86,8 +86,8 @@ const ChoresPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
+      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
         <Toolbar>
           <IconButton edge="start" onClick={() => navigate('/meal')}>
             <ArrowBackIcon />
@@ -97,6 +97,8 @@ const ChoresPage: React.FC = () => {
           </Typography>
         </Toolbar>
       </AppBar>
+
+      <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
 
       <Container maxWidth="sm" sx={{ py: 3 }}>
         {/* Category Tabs */}
@@ -223,6 +225,7 @@ const ChoresPage: React.FC = () => {
           </DialogActions>
         </Dialog>
       </Container>
+      </Box>
     </Box>
   );
 };

@@ -8,43 +8,41 @@ import {
   useTheme,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
+import ChildCareIcon from '@mui/icons-material/ChildCare';
 import { getLangText } from '../../i18n';
 
-const MealPrepIndex: React.FC = () => {
+const BabyIndex: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
   const menuItems = [
     {
-      icon: <RestaurantIcon sx={{ fontSize: 40 }} />,
-      title: getLangText('膳食安排', 'Meal Preparation'),
-      desc: getLangText('設置午餐晚餐時間和菜單', 'Set lunch & dinner time and menu'),
-      path: '/household/meal',
-      color: theme.palette.primary.main,
+      icon: <ChildCareIcon sx={{ fontSize: 40 }} />,
+      title: getLangText('餵奶週期', 'Feeding Cycle'),
+      desc: getLangText('記錄BB每日餵奶週期', 'Track baby daily feeding cycles'),
+      path: '/baby/feeding',
+      color: '#EC407A',
     },
     {
-      icon: <ListAltIcon sx={{ fontSize: 40 }} />,
-      title: getLangText('膳食總結', 'Meal Summary'),
-      desc: getLangText('查看並分享膳食計劃', 'View and share meal plan'),
-      path: '/household/meal/summary',
-      color: theme.palette.secondary.main,
+      icon: <ChildCareIcon sx={{ fontSize: 40 }} />,
+      title: getLangText('寶寶資料', 'Baby Profile'),
+      desc: getLangText('BB基本資料', 'Baby basic info'),
+      path: '/baby/profile',
+      color: '#AB47BC',
     },
     {
-      icon: <HomeIcon sx={{ fontSize: 40 }} />,
-      title: getLangText('家務', 'Household Chores'),
-      desc: getLangText('日常家務清單', 'Daily chores checklist'),
-      path: '/household/chores',
+      icon: <ChildCareIcon sx={{ fontSize: 40 }} />,
+      title: getLangText('歷史記錄', 'History'),
+      desc: getLangText('查看過往記錄', 'View past records'),
+      path: '/baby/history',
       color: '#7E57C2',
     },
     {
-      icon: <RestaurantIcon sx={{ fontSize: 40 }} />,
-      title: getLangText('菜餚維護', 'Dish Maintenance'),
-      desc: getLangText('新增和管理菜餚選項', 'Add and manage dish options'),
-      path: '/household/meal/dishes',
+      icon: <ChildCareIcon sx={{ fontSize: 40 }} />,
+      title: getLangText('統計', 'Statistics'),
+      desc: getLangText('BB成長統計', 'Baby growth stats'),
+      path: '/baby/stats',
       color: '#5C6BC0',
     },
   ];
@@ -55,9 +53,9 @@ const MealPrepIndex: React.FC = () => {
         <Container maxWidth="sm">
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <RestaurantIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+          <ChildCareIcon sx={{ fontSize: 60, color: '#EC407A', mb: 2 }} />
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            {getLangText('膳食與家務', 'Meal & Household')}
+            {getLangText('嬰兒護理', 'Baby Care')}
           </Typography>
         </Box>
 
@@ -110,4 +108,4 @@ const MealPrepIndex: React.FC = () => {
   );
 };
 
-export default MealPrepIndex;
+export default BabyIndex;

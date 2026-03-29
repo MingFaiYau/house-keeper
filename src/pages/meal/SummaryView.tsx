@@ -58,7 +58,7 @@ const encodePlanData = (date: string, plan: DailyPlan): string => {
   return btoa(encodeURIComponent(JSON.stringify(simplified)));
 };
 
-const PrintView: React.FC = () => {
+const SummaryView: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -107,7 +107,7 @@ const PrintView: React.FC = () => {
     window.print();
   };
 
-  const getTitle = () => getLangText('分享膳食', 'Share Meal');
+  const getTitle = () => getLangText('膳食總結', 'Meal Summary');
 
   const getMealLabel = (type: string) => {
     const mealType = MEAL_TYPES.find(m => m.id === type);
@@ -216,16 +216,16 @@ const PrintView: React.FC = () => {
   const mealList = Object.entries(meals);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="static" color="default" elevation={1} className="no-print" sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
+      <AppBar position="sticky" color="default" elevation={1} className="no-print" sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
         <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/')} sx={{ color: isDark ? '#fff' : 'inherit' }}>
+          <IconButton edge="start" onClick={() => navigate('/household')} sx={{ color: isDark ? '#fff' : 'inherit' }}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, color: isDark ? '#fff' : 'inherit' }}>
             {getTitle()}
           </Typography>
-          <IconButton onClick={() => navigate(`/meal/daily?date=${currentDate}`)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('編輯', 'Edit')}>
+          <IconButton onClick={() => navigate(`/household/meal?date=${currentDate}`)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('編輯', 'Edit')}>
             <RestaurantIcon />
           </IconButton>
           <IconButton onClick={() => setQrDialogOpen(true)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('分享', 'Share')}>
@@ -237,8 +237,9 @@ const PrintView: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="md" sx={{ py: 3, bgcolor: isDark ? '#121212' : 'transparent' }}>
-        <Box sx={{ mb: 3, textAlign: 'center' }} className="no-print">
+      <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
+        <Container maxWidth="md" sx={{ py: 2, bgcolor: isDark ? '#121212' : 'transparent' }}>
+          <Box sx={{ mb: 3, textAlign: 'center' }} className="no-print">
           <DateSelector
             currentDate={currentDate}
             onDateChange={setCurrentDate}
@@ -281,6 +282,7 @@ const PrintView: React.FC = () => {
           )}
         </Box>
       </Container>
+      </Box>
 
       <style>{`
         @media print {
@@ -350,4 +352,4 @@ const PrintView: React.FC = () => {
   );
 };
 
-export default PrintView;
+export default SummaryView;
