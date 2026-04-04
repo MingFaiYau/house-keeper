@@ -25,7 +25,8 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
 
 // Version is updated automatically by pre-commit hook
-const APP_VERSION = '1.0.9';
+// @ts-expect-error __APP_VERSION__ is defined in vite.config.ts
+const APP_VERSION = __APP_VERSION__ || 'dev';
 
 const AppSettings: React.FC = () => {
   const theme = useTheme();
