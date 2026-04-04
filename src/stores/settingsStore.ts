@@ -1,12 +1,26 @@
 import { create } from 'zustand';
 import i18n from '../i18n';
 
+interface PlayOption {
+  id: string;
+  icon: string;
+  labelZh: string;
+  labelEn: string;
+}
+
 interface AppSettings {
   language: string;
   theme: 'light' | 'dark' | 'system';
   modules: {
     household: boolean;
     baby: boolean;
+  };
+  defaultBabySection?: string;
+  baby: {
+    defaultMilkAmount: number;
+    feedingCycleMinTime: number;
+    playOptions: string[];
+    customPlayOptions: PlayOption[];
   };
 }
 
@@ -15,6 +29,11 @@ interface SettingsState {
   setLanguage: (lang: string) => void;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setModuleEnabled: (module: 'household' | 'baby', enabled: boolean) => void;
+  setDefaultBabySection: (section: string | undefined) => void;
+  setBabyDefaults: (babySettings: Partial<AppSettings['baby']>) => void;
+  addCustomPlayOption: (option: PlayOption) => void;
+  updateCustomPlayOption: (id: string, updates: Partial<PlayOption>) => void;
+  deleteCustomPlayOption: (id: string) => void;
   isModuleEnabled: (module: 'household' | 'baby') => boolean;
   getEffectiveTheme: () => 'light' | 'dark';
 }
@@ -31,8 +50,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     language: 'zh-TW',
     theme: 'light',
     modules: {
-      household: true,
+      household: false,
       baby: true,
+    },
+    defaultBabySection: 'feeding',
+    baby: {
+      defaultMilkAmount: 150,
+      feedingCycleMinTime: 180, // 3 hours in minutes
+      playOptions: ['tummy_time', 'toys', 'music', 'outdoor'],
+      customPlayOptions: [],
     },
   },
 
@@ -53,12 +79,75 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   },
 
   setModuleEnabled: (module: 'household' | 'baby', enabled: boolean) => {
+    // Household is always disabled for now
+    if (module === 'household') return;
     set((state) => ({
       settings: {
         ...state.settings,
         modules: {
           ...state.settings.modules,
           [module]: enabled,
+        },
+      },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  setDefaultBabySection: (section: string | undefined) => {
+    set((state) => ({
+      settings: { ...state.settings, defaultBabySection: section },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  setBabyDefaults: (babySettings: Partial<AppSettings['baby']>) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        baby: {
+          ...state.settings.baby,
+          ...babySettings,
+        },
+      },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  addCustomPlayOption: (option: PlayOption) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        baby: {
+          ...state.settings.baby,
+          customPlayOptions: [...state.settings.baby.customPlayOptions, option],
+        },
+      },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  updateCustomPlayOption: (id: string, updates: Partial<PlayOption>) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        baby: {
+          ...state.settings.baby,
+          customPlayOptions: state.settings.baby.customPlayOptions.map((opt) =>
+            opt.id === id ? { ...opt, ...updates } : opt
+          ),
+        },
+      },
+    }));
+    localStorage.setItem('app-settings', JSON.stringify(get().settings));
+  },
+
+  deleteCustomPlayOption: (id: string) => {
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        baby: {
+          ...state.settings.baby,
+          customPlayOptions: state.settings.baby.customPlayOptions.filter((opt) => opt.id !== id),
         },
       },
     }));
@@ -86,7 +175,27 @@ export const loadSettings = () => {
       if (parsed.language) {
         i18n.changeLanguage(parsed.language);
       }
-      useSettingsStore.setState({ settings: parsed });
+      // Merge with defaults, always disable household for now
+      useSettingsStore.setState({
+        settings: {
+          language: 'zh-TW',
+          theme: 'light',
+          modules: {
+            household: false, // Always disabled for now
+            baby: true,
+            ...parsed.modules,
+          },
+          defaultBabySection: 'feeding',
+          baby: {
+            defaultMilkAmount: 150,
+            feedingCycleMinTime: 180,
+            playOptions: ['tummy_time', 'toys', 'music', 'outdoor'],
+            customPlayOptions: [],
+            ...parsed.baby,
+          },
+          ...parsed,
+        },
+      });
     }
   } catch (e) {
     console.error('Failed to load settings:', e);

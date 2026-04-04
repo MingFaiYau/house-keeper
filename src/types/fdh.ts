@@ -201,6 +201,9 @@ export interface StepRecord {
   bathDone: boolean;
   nailTrim: NailTrim;
   playOptions: string[];
+  milkAmount: number;
+  massageDone: boolean;
+  remark: string;
 }
 
 export interface BabyCycleDay {

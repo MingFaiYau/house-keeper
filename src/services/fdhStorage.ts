@@ -87,11 +87,13 @@ export async function saveBabyCycleDay(day: BabyCycleDay): Promise<number> {
 }
 
 export async function getAllBabyCycleDays(babyId: string): Promise<BabyCycleDay[]> {
-  return await db.babyCycleRecords.where('babyId').equals(babyId).reverse().sortBy('date');
+  const records = await db.babyCycleRecords.filter(record => record.babyId === babyId).toArray();
+  return records.sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export async function deleteBabyCycleData(babyId: string): Promise<void> {
-  await db.babyCycleRecords.where('babyId').equals(babyId).delete();
+  const records = await db.babyCycleRecords.filter(record => record.babyId === babyId).toArray();
+  await db.babyCycleRecords.bulkDelete(records.map(r => r.id!));
 }
 
 // Baby Settings
