@@ -131,7 +131,7 @@ const PlaceholderPage: React.FC<{ title: string; subtitle: string }> = ({ title,
   <div style={{ padding: '40px', textAlign: 'center' }}>
     <h2>{title}</h2>
     <p>{subtitle}</p>
-    <p style={{ color: '#666', marginTop: '20px' }}>Coming Soon / 即將推出</p>
+    <div style={{ color: '#666', marginTop: '20px' }}>Coming Soon / 即將推出</div>
   </div>
 );
 

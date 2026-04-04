@@ -47,8 +47,8 @@ const getSystemTheme = (): 'light' | 'dark' => {
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: {
-    language: 'zh-TW',
-    theme: 'light',
+    language: 'en',
+    theme: 'dark',
     modules: {
       household: false,
       baby: true,
@@ -178,8 +178,8 @@ export const loadSettings = () => {
       // Merge with defaults, always disable household for now
       useSettingsStore.setState({
         settings: {
-          language: 'zh-TW',
-          theme: 'light',
+          language: 'en',
+          theme: 'dark',
           modules: {
             household: false, // Always disabled for now
             baby: true,
