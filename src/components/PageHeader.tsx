@@ -9,7 +9,6 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material';
-import { getLangText } from '../i18n';
 
 interface PageHeaderProps {
   title: string;
