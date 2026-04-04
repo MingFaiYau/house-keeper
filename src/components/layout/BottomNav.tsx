@@ -10,7 +10,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 const BottomNav: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isModuleEnabled } = useSettingsStore();
+  const { isModuleEnabled, settings } = useSettingsStore();
 
   const getValue = () => {
     if (location.pathname === '/home') return 'home';
@@ -20,6 +20,15 @@ const BottomNav: React.FC = () => {
     return 'household';
   };
 
+  const handleBabyClick = () => {
+    const defaultSection = settings.defaultBabySection;
+    if (defaultSection) {
+      navigate(`/baby/${defaultSection}`);
+    } else {
+      navigate('/baby');
+    }
+  };
+
   return (
     <Paper
       sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }}
@@ -27,7 +36,13 @@ const BottomNav: React.FC = () => {
     >
       <BottomNavigation
         value={getValue()}
-        onChange={(_, newValue) => navigate(`/${newValue}`)}
+        onChange={(_, newValue) => {
+          if (newValue === 'baby') {
+            handleBabyClick();
+          } else {
+            navigate(`/${newValue}`);
+          }
+        }}
         showLabels
       >
         <BottomNavigationAction

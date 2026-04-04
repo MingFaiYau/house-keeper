@@ -20,7 +20,7 @@ const HomePage: React.FC = () => {
   const isDark = theme.palette.mode === 'dark';
   const { isModuleEnabled } = useSettingsStore();
 
-  const modules = [
+  const allModules = [
     {
       id: 'household' as const,
       icon: <HomeIcon sx={{ fontSize: 40 }} />,
@@ -38,6 +38,14 @@ const HomePage: React.FC = () => {
       path: '/baby',
     },
   ];
+
+  // Sort: enabled modules first, then by order
+  const modules = [...allModules].sort((a, b) => {
+    const aEnabled = isModuleEnabled(a.id);
+    const bEnabled = isModuleEnabled(b.id);
+    if (aEnabled !== bEnabled) return bEnabled ? 1 : -1;
+    return 0;
+  });
 
   return (
     <Box sx={{

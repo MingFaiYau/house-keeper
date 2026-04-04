@@ -9,7 +9,6 @@ import {
   IconButton,
   AppBar,
   Toolbar,
-  Chip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,14 +17,17 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import SettingsIcon from '@mui/icons-material/Settings';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { getLangText } from '../../i18n';
 import { useTheme } from '@mui/material';
 import DateSelector from '../../components/DateSelector';
 import { useBabyCycleStore } from '../../stores/babyCycleStore';
 import BabySelector from '../../components/baby/BabySelector';
 import { useBabyStore } from '../../stores/babyStore';
+import { useSettingsStore, loadSettings } from '../../stores/settingsStore';
 import type { StepRecord, NailTrim } from '../../types/fdh';
 
 interface CycleStep {
@@ -35,61 +37,65 @@ interface CycleStep {
   icon: string;
 }
 
-interface PlayOption {
-  id: string;
-  icon: string;
-  labelZh: string;
-  labelEn: string;
-}
-
-const PLAY_OPTIONS: PlayOption[] = [
-  { id: 'black_white_card', icon: '🃏', labelZh: '黑白卡片', labelEn: 'Black & White Card' },
-  { id: 'hold_toys', icon: '🧸', labelZh: '拿玩具', labelEn: 'Hold Toys' },
-  { id: 'sing_songs', icon: '🎵', labelZh: '唱兒歌', labelEn: 'Sing Songs' },
-  { id: 'outdoor', icon: '🌳', labelZh: '戶外', labelEn: 'Outdoor' },
-  { id: 'tummy_time', icon: '🤸', labelZh: '趴趴時間', labelEn: 'Tummy Time' },
-  { id: 'play_alone', icon: '👶', labelZh: '自己玩', labelEn: 'Play Alone' },
-  { id: 'listen_music', icon: '🎧', labelZh: '聽音樂', labelEn: 'Listen to Music' },
-  { id: 'others', icon: '✨', labelZh: '其他', labelEn: 'Others' },
-];
-
 const CYCLE_STEPS: CycleStep[] = [
   { id: 0, nameZh: '叫醒BB', nameEn: 'Wake Up', icon: '🌅' },
   { id: 1, nameZh: '按摩及清潔', nameEn: 'Massage & Clean', icon: '✋' },
   { id: 2, nameZh: '餵奶及掃風', nameEn: 'Feeding & Burp', icon: '🍼' },
   { id: 3, nameZh: '玩耍', nameEn: 'Playing', icon: '🎨' },
   { id: 4, nameZh: '睡覺', nameEn: 'Sleeping', icon: '💤' },
+  { id: 5, nameZh: '修剪指甲', nameEn: 'Trim Nails', icon: '💅' },
+  { id: 6, nameZh: '備註', nameEn: 'Remark', icon: '📝' },
 ];
 
-// Steps that allow diaper changes
-const DIAPER_ALLOWED_STEPS = [1, 2, 3];
+// Steps that require navigation bar (mandatory with time)
+const NAV_REQUIRED_STEPS = [0, 2, 4];
 
-// Steps that allow skip with reason
+// Steps that allow skip with reason (massage, playing)
 const SKIP_ALLOWED_STEPS = [1, 3];
+
+// Steps that DON'T need time input (auto-complete when any item updated)
+const NO_TIME_STEPS = [1, 3, 5, 6];
+
+// Optional steps (no navigation, always show ?)
+const OPTIONAL_STEPS = [5, 6];
+
+// Steps that allow diaper changes (massage, feeding, playing)
+const DIAPER_ALLOWED_STEPS = [1, 2, 3];
 
 // Steps that allow burp time (feeding step)
 const BURP_ALLOWED_STEPS = [2];
 
-// Steps that allow bath and nail trim (massage & clean step)
+// Steps that allow bath (massage & clean step)
 const BATH_ALLOWED_STEPS = [1];
 
 // Steps that allow play options (playing step)
 const PLAY_ALLOWED_STEPS = [3];
 
+// Steps that allow nail trim (optional step)
+const NAIL_TRIM_ALLOWED_STEPS = [5];
+
+// Steps that allow remark (optional step)
+const REMARK_ALLOWED_STEPS = [6];
+
 // Reusable record badge component
-const RecordBadge: React.FC<{ record: StepRecord; isDark: boolean }> = ({ record, isDark }) => {
-  if (!record || !(record.time || record.diaperChanges?.urine || record.diaperChanges?.popo || record.diaperChanges?.manyPopo || record.bathDone || record.nailTrim?.leftHand || record.nailTrim?.rightHand || record.nailTrim?.leftFoot || record.nailTrim?.rightFoot || record.burpDone || (record.playOptions && record.playOptions.length > 0))) {
+const RecordBadge: React.FC<{ record: StepRecord; isDark: boolean; stepId?: number; customPlayOptions?: { id: string; icon: string; labelZh: string; labelEn: string }[] }> = ({ record, isDark, stepId, customPlayOptions = [] }) => {
+  if (!record || !(record.time || record.skipped || record.diaperChanges?.urine || record.diaperChanges?.popo || record.diaperChanges?.manyPopo || record.bathDone || record.nailTrim?.leftHand || record.nailTrim?.rightHand || record.nailTrim?.leftFoot || record.nailTrim?.rightFoot || record.burpDone || record.milkAmount || record.massageDone || (record.playOptions && record.playOptions.length > 0) || record.remark)) {
     return null;
   }
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
-      {record.skipped && (
-        <Chip size="small" label={getLangText('已跳過', 'Skipped')} color="warning" variant="outlined" />
-      )}
-      {record.time && (
+      {/* Hide time for NO_TIME_STEPS (massage/clean and playing) - but show if exists */}
+      {(record.time && !NO_TIME_STEPS.includes(stepId || 0)) && (
         <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#1565c0' : '#e3f2fd', borderRadius: 1 }}>
           <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#fff' : '#1565c0' }}>
             ⏰ {record.time}
+          </Typography>
+        </Box>
+      )}
+      {record.massageDone && (
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#7e57c2' : '#ede7f6', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#fff' : '#673ab7' }}>
+            ✋ {getLangText('按摩', 'Massage')}
           </Typography>
         </Box>
       )}
@@ -152,10 +158,17 @@ const RecordBadge: React.FC<{ record: StepRecord; isDark: boolean }> = ({ record
           </Typography>
         </Box>
       )}
+      {record.milkAmount > 0 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#ec407a' : '#fce4ec', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#fff' : '#c2185b' }}>
+            🍼 {record.milkAmount}ml
+          </Typography>
+        </Box>
+      )}
       {record.playOptions && record.playOptions.length > 0 && (
         <>
           {record.playOptions.map(id => {
-            const option = PLAY_OPTIONS.find(p => p.id === id);
+            const option = customPlayOptions.find(p => p.id === id);
             if (!option) return null;
             return (
               <Box key={id} sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#ec407a' : '#fce4ec', borderRadius: 1 }}>
@@ -167,6 +180,20 @@ const RecordBadge: React.FC<{ record: StepRecord; isDark: boolean }> = ({ record
           })}
         </>
       )}
+      {record.remark && (
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#78909c' : '#cfd8dc', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#fff' : '#455a64' }}>
+            📝 {record.remark}
+          </Typography>
+        </Box>
+      )}
+      {record.skipReason && (
+        <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 0.5, bgcolor: isDark ? '#ff9800' : '#fff3e0', borderRadius: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: isDark ? '#fff' : '#e65100' }}>
+            ⏱️ {record.skipReason}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };
@@ -177,7 +204,13 @@ const BabyFeedingCycle: React.FC = () => {
   const isDark = theme.palette.mode === 'dark';
 
   const { cycleRecords, currentDate, loadDay, updateCycles } = useBabyCycleStore();
-  const { getDefaultBaby, loadSettings } = useBabyStore();
+  const { getDefaultBaby, loadSettings: loadBabySettings } = useBabyStore();
+  const { settings } = useSettingsStore();
+
+  // Get all playing options from settings
+  const allPlayOptions = settings.baby.playOptions
+    .map(id => settings.baby.customPlayOptions.find(opt => opt.id === id))
+    .filter((opt): opt is NonNullable<typeof opt> => opt !== undefined);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [currentCycle, setCurrentCycle] = useState(0);
@@ -192,7 +225,9 @@ const BabyFeedingCycle: React.FC = () => {
   // Load data when component mounts and when date changes
   useEffect(() => {
     loadSettings();
-  }, [loadSettings]);
+    loadBabySettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const defaultBaby = getDefaultBaby();
 
@@ -226,11 +261,21 @@ const BabyFeedingCycle: React.FC = () => {
     if (!newRecords[currentDate][currentCycle][currentStep]) {
       newRecords[currentDate][currentCycle][currentStep] = {};
     }
-    newRecords[currentDate][currentCycle][currentStep] = {
-      ...newRecords[currentDate][currentCycle][currentStep],
+
+    const updates: any = {
       time: timeStr,
       skipped: false,
       skipReason: '',
+    };
+
+    // For step 2 (feeding), auto-set default milk amount if not set
+    if (currentStep === 2 && !newRecords[currentDate][currentCycle][currentStep].milkAmount) {
+      updates.milkAmount = settings.baby.defaultMilkAmount;
+    }
+
+    newRecords[currentDate][currentCycle][currentStep] = {
+      ...newRecords[currentDate][currentCycle][currentStep],
+      ...updates,
     };
     updateCycles(newRecords);
   };
@@ -253,11 +298,21 @@ const BabyFeedingCycle: React.FC = () => {
     if (!newRecords[currentDate][currentCycle][currentStep]) {
       newRecords[currentDate][currentCycle][currentStep] = {};
     }
-    newRecords[currentDate][currentCycle][currentStep] = {
-      ...newRecords[currentDate][currentCycle][currentStep],
+
+    const updates: any = {
       time,
       skipped: false,
       skipReason: '',
+    };
+
+    // For step 2 (feeding), auto-set default milk amount if not set
+    if (currentStep === 2 && !newRecords[currentDate][currentCycle][currentStep].milkAmount) {
+      updates.milkAmount = settings.baby.defaultMilkAmount;
+    }
+
+    newRecords[currentDate][currentCycle][currentStep] = {
+      ...newRecords[currentDate][currentCycle][currentStep],
+      ...updates,
     };
     updateCycles(newRecords);
   };
@@ -274,6 +329,33 @@ const BabyFeedingCycle: React.FC = () => {
     if (!newRecords[currentDate][currentCycle][currentStep]) {
       newRecords[currentDate][currentCycle][currentStep] = {};
     }
+
+    // For NO_TIME_STEPS (massage/clean and playing), set time if any action exists, clear if none
+    if (NO_TIME_STEPS.includes(currentStep)) {
+      // Get current record to check existing state
+      const currentRecord = newRecords[currentDate][currentCycle][currentStep] || {};
+      const currentDiaper = updates.diaperChanges || currentRecord.diaperChanges || { urine: 0, popo: 0, manyPopo: 0 };
+      const currentPlayOptions = updates.playOptions !== undefined ? updates.playOptions : (currentRecord.playOptions || []);
+
+      const hasAnyAction =
+        updates.massageDone !== undefined ? updates.massageDone : currentRecord.massageDone ||
+        updates.bathDone !== undefined ? updates.bathDone : currentRecord.bathDone ||
+        (currentDiaper.urine > 0) ||
+        (currentDiaper.popo > 0) ||
+        (currentDiaper.manyPopo > 0) ||
+        currentPlayOptions.length > 0;
+
+      if (hasAnyAction) {
+        const now = new Date();
+        updates.time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      } else {
+        // If no actions, clear time (but keep skipped state if present)
+        if (!updates.skipped) {
+          updates.time = '';
+        }
+      }
+    }
+
     newRecords[currentDate][currentCycle][currentStep] = {
       ...newRecords[currentDate][currentCycle][currentStep],
       ...updates,
@@ -315,14 +397,26 @@ const BabyFeedingCycle: React.FC = () => {
     updateCurrentStep({ playOptions: updated });
   };
 
-  const handleSkip = () => {
-    setShowSkipDialog(true);
-  };
-
   const confirmSkip = () => {
-    updateCurrentStep({ time: '', skipped: true, skipReason });
+    // Clear all other actions and set skipped
+    updateCurrentStep({
+      time: '',
+      skipped: true,
+      skipReason,
+      massageDone: false,
+      bathDone: false,
+      diaperChanges: { urine: 0, popo: 0, manyPopo: 0 },
+      nailTrim: { leftHand: false, rightHand: false, leftFoot: false, rightFoot: false },
+      burpDone: false,
+      milkAmount: 0,
+      playOptions: [],
+    });
     setShowSkipDialog(false);
     setSkipReason('');
+  };
+
+  const handleUndoSkip = () => {
+    updateCurrentStep({ time: '', skipped: false, skipReason: '' });
   };
 
   const isAllStepsCompleted = (cycleIdx: number) => {
@@ -330,7 +424,12 @@ const BabyFeedingCycle: React.FC = () => {
     if (!cycleData) return false;
     for (let i = 0; i < CYCLE_STEPS.length; i++) {
       const record = cycleData[i];
-      if (!record || (!record.time && !record.skipped)) {
+      // For step 2 (feeding), need time or milkAmount or skipped
+      if (i === 2) {
+        if (!record || (!record.time && record.milkAmount <= 0 && !record.skipped)) {
+          return false;
+        }
+      } else if (!record || (!record.time && !record.skipped)) {
         return false;
       }
     }
@@ -342,7 +441,12 @@ const BabyFeedingCycle: React.FC = () => {
     const incomplete: number[] = [];
     for (let i = 0; i < CYCLE_STEPS.length; i++) {
       const record = cycleData?.[i];
-      if (!record || (!record.time && !record.skipped)) {
+      // For step 2 (feeding), allow milkAmount as alternative to time
+      if (i === 2) {
+        if (!record || (!record.time && record.milkAmount <= 0 && !record.skipped)) {
+          incomplete.push(i);
+        }
+      } else if (!record || (!record.time && !record.skipped)) {
         incomplete.push(i);
       }
     }
@@ -350,10 +454,9 @@ const BabyFeedingCycle: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < CYCLE_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Check if all steps have time or skipped
+    // Stop at step 4 (sleeping) - complete the cycle
+    if (currentStep === 4) {
+      // Check if required steps have time or skipped (steps 0-4 only)
       if (!isAllStepsCompleted(currentCycle)) {
         const incomplete = getIncompleteSteps(currentCycle);
         setShowIncompleteDialog(true);
@@ -373,12 +476,26 @@ const BabyFeedingCycle: React.FC = () => {
       setCurrentStep(0);
       setCompletedCycleNum(currentCycle + 1);
       setShowCompleteDialog(true);
+      return;
+    }
+
+    // For other required steps, go to next
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // Should not reach here, but just in case
+      setCurrentStep(4);
     }
   };
 
   const handlePrev = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      // If at optional steps (5 or 6), go back to step 4 (sleeping)
+      if (currentStep > 4) {
+        setCurrentStep(4);
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
     }
   };
 
@@ -389,7 +506,19 @@ const BabyFeedingCycle: React.FC = () => {
 
   const getStepStatus = (stepId: number) => {
     const record = cycleData?.[stepId];
-    if (record && (record.time || record.skipped)) return 'completed';
+    if (record?.skipped) return 'skipped';
+    if (record?.time) return 'completed';
+    // For NO_TIME_STEPS (1, 3): check if any action is done
+    if (SKIP_ALLOWED_STEPS.includes(stepId)) {
+      const hasAnyAction =
+        record?.massageDone ||
+        record?.bathDone ||
+        (record?.diaperChanges?.urine ?? 0) > 0 ||
+        (record?.diaperChanges?.popo ?? 0) > 0 ||
+        (record?.diaperChanges?.manyPopo ?? 0) > 0 ||
+        (record?.playOptions?.length ?? 0) > 0;
+      if (hasAnyAction) return 'completed';
+    }
     if (stepId === currentStep) return 'current';
     return 'pending';
   };
@@ -402,26 +531,62 @@ const BabyFeedingCycle: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
       <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/baby')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getLangText('餵奶週期', 'Feeding Cycle')}
-          </Typography>
+        <Toolbar variant="dense" sx={{ minHeight: 48 }}>
+          {/* Left side */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton edge="start" onClick={() => navigate('/baby')} size="small">
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'block' } }}>
+              {getLangText('餵奶週期', 'Feeding Cycle')}
+            </Typography>
+          </Box>
+
+          {/* Spacer */}
+          <Box sx={{ flex: 1 }} />
+
+          {/* Right side */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <BabySelector compact iconOnly />
+            <DateSelector
+              currentDate={currentDate}
+              onDateChange={handleDateChange}
+              isDark={isDark}
+              compact
+              showIcon
+            />
+            <IconButton onClick={() => navigate('/baby/settings')} sx={{ color: isDark ? '#fff' : 'inherit' }} size="small">
+              <SettingsIcon />
+            </IconButton>
+          </Box>
         </Toolbar>
       </AppBar>
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">
-        {/* Date Selector */}
-        <DateSelector
-          currentDate={currentDate}
-          onDateChange={handleDateChange}
-          isDark={isDark}
-        />
-
-        <BabySelector />
+        {/* Date Display with prev/next */}
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <IconButton size="small" onClick={() => {
+            const prev = new Date(currentDate);
+            prev.setDate(prev.getDate() - 1);
+            handleDateChange(prev.toISOString().split('T')[0]);
+          }}>
+            <ChevronLeftIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {currentDate} ({getLangText(
+              ['日', '一', '二', '三', '四', '五', '六'][new Date(currentDate).getDay()],
+              ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(currentDate).getDay()]
+            )})
+          </Typography>
+          <IconButton size="small" onClick={() => {
+            const next = new Date(currentDate);
+            next.setDate(next.getDate() + 1);
+            handleDateChange(next.toISOString().split('T')[0]);
+          }}>
+            <ChevronRightIcon />
+          </IconButton>
+        </Box>
 
         {/* Cycle Selector - only show when there are cycles */}
         {Object.keys(dateCycles).length > 0 && (
@@ -433,11 +598,12 @@ const BabyFeedingCycle: React.FC = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
                 {Object.keys(dateCycles).map((cycleIdx) => {
                   const rec = dateCycles[parseInt(cycleIdx)] || {};
+                  // Only use step 0 (wake up) and step 4 (sleeping) for time display
                   const startTime = rec[0]?.time;
                   const endTime = rec[4]?.time;
                   const timeDisplay = startTime || endTime
                     ? `(${startTime || ''} - ${endTime || ''})`
-                    : '(TBC)';
+                    : '';
                   const cycleLabel = getLangText('第' + (parseInt(cycleIdx) + 1) + '週期', 'Cycle ' + (parseInt(cycleIdx) + 1));
                   const isCycleComplete = isAllStepsCompleted(parseInt(cycleIdx));
                   return (
@@ -486,7 +652,7 @@ const BabyFeedingCycle: React.FC = () => {
               onClick={() => {
                 const cycleData = dateCycles[currentCycle];
                 const hasRecords = cycleData && Object.values(cycleData).some((rec: any) =>
-                  rec && (rec.time || rec.skipped || rec.bathDone || rec.burpDone ||
+                  rec && (rec.time || rec.skipped || rec.bathDone || rec.burpDone || rec.massageDone || rec.milkAmount ||
                     (rec.diaperChanges && (rec.diaperChanges.urine || rec.diaperChanges.popo || rec.diaperChanges.manyPopo)) ||
                     (rec.playOptions && rec.playOptions.length > 0) ||
                     (rec.nailTrim && (rec.nailTrim.leftHand || rec.nailTrim.rightHand || rec.nailTrim.leftFoot || rec.nailTrim.rightFoot)))
@@ -518,6 +684,14 @@ const BabyFeedingCycle: React.FC = () => {
           {CYCLE_STEPS.map((s, index) => {
             const status = getStepStatus(index);
             const stepRecord = getCycleRecord(currentCycle)[index] as StepRecord | undefined;
+
+            // Determine step state for display
+            const isOptional = OPTIONAL_STEPS.includes(index);
+            const hasData = stepRecord?.time || stepRecord?.milkAmount || stepRecord?.massageDone || stepRecord?.bathDone || stepRecord?.nailTrim?.leftHand || stepRecord?.nailTrim?.rightHand || stepRecord?.nailTrim?.leftFoot || stepRecord?.nailTrim?.rightFoot || (stepRecord?.playOptions && stepRecord.playOptions.length > 0) || stepRecord?.remark;
+            const isCompleted = status === 'completed';
+            const isSkipped = status === 'skipped';
+            const isOptionalIncomplete = isOptional && !hasData && !isSkipped;
+
             return (
               <Box
                 key={s.id}
@@ -534,12 +708,21 @@ const BabyFeedingCycle: React.FC = () => {
                   '&:hover': { bgcolor: isDark ? '#252525' : '#f5f5f5' },
                 }}
               >
-                {status === 'completed' ? (
-                  <CheckCircleIcon sx={{ color: 'success.main', mr: 1 }} />
+                {/* Step status icon */}
+                {isCompleted ? (
+                  <CheckCircleIcon sx={{ color: 'success.main', mr: 1, fontSize: 20 }} />
+                ) : isSkipped ? (
+                  <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                    <Typography sx={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>S</Typography>
+                  </Box>
+                ) : isOptionalIncomplete ? (
+                  <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
+                    <Typography sx={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>?</Typography>
+                  </Box>
                 ) : status === 'current' ? (
-                  <RadioButtonUncheckedIcon sx={{ color: 'primary.main', mr: 1 }} />
+                  <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid', borderColor: 'primary.main', mr: 1 }} />
                 ) : (
-                  <RadioButtonUncheckedIcon sx={{ color: 'grey.400', mr: 1 }} />
+                  <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid', borderColor: 'grey.400', mr: 1 }} />
                 )}
                 <Typography
                   variant="body2"
@@ -551,11 +734,8 @@ const BabyFeedingCycle: React.FC = () => {
                 >
                   {s.icon} {getLangText(s.nameZh, s.nameEn)}
                 </Typography>
-                {stepRecord?.skipped && !stepRecord?.time && (
-                  <Chip size="small" label={getLangText('已跳過', 'Skipped')} color="warning" variant="outlined" />
-                )}
-                {(stepRecord?.time || stepRecord?.diaperChanges?.urine || stepRecord?.diaperChanges?.popo || stepRecord?.diaperChanges?.manyPopo || stepRecord?.bathDone || stepRecord?.nailTrim?.leftHand || stepRecord?.nailTrim?.rightHand || stepRecord?.nailTrim?.leftFoot || stepRecord?.nailTrim?.rightFoot || stepRecord?.burpDone || (stepRecord?.playOptions && stepRecord?.playOptions.length > 0)) && (
-                  <RecordBadge record={stepRecord} isDark={isDark} />
+                {(stepRecord?.time || stepRecord?.skipped || stepRecord?.diaperChanges?.urine || stepRecord?.diaperChanges?.popo || stepRecord?.diaperChanges?.manyPopo || stepRecord?.bathDone || stepRecord?.nailTrim?.leftHand || stepRecord?.nailTrim?.rightHand || stepRecord?.nailTrim?.leftFoot || stepRecord?.nailTrim?.rightFoot || stepRecord?.burpDone || stepRecord?.milkAmount || stepRecord?.massageDone || (stepRecord?.playOptions && stepRecord?.playOptions.length > 0) || stepRecord?.remark) && (
+                  <RecordBadge record={stepRecord} isDark={isDark} stepId={index} customPlayOptions={settings.baby.customPlayOptions} />
                 )}
               </Box>
             );
@@ -569,34 +749,45 @@ const BabyFeedingCycle: React.FC = () => {
               {step.icon} {getLangText(step.nameZh, step.nameEn)}
             </Typography>
 
-            {/* Time Input */}
-            <Box sx={{ mb: 1.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                <TextField
-                  type="time"
-                  value={stepRecord?.time || ''}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  size="small"
-                  sx={{
-                    width: 140,
-                    '& input': { textAlign: 'center', fontSize: '1.1rem', padding: '8px 4px' },
-                    '& input[type="time"]::-webkit-calendar-picker-indicator': {
-                      filter: isDark ? 'invert(1)' : 'none',
-                    },
-                  }}
-                />
-                <Button variant="contained" size="small" onClick={handleSetNow}>
-                  {getLangText('現在', 'Now')}
-                </Button>
+            {stepRecord?.skipped && (
+              <Box sx={{ mb: 2, p: 1, bgcolor: isDark ? '#ff9800' : '#fff3e0', borderRadius: 1 }}>
+                <Typography variant="body2" sx={{ color: isDark ? '#fff' : '#e65100', fontWeight: 600 }}>
+                  {getLangText('已跳過', 'Skipped')}
+                </Typography>
+                {stepRecord.skipReason && (
+                  <Typography variant="caption" sx={{ color: isDark ? '#fff' : '#e65100' }}>
+                    {getLangText('原因', 'Reason')}: {stepRecord.skipReason}
+                  </Typography>
+                )}
               </Box>
+            )}
 
-              {/* Record Status - same style as step flow */}
-              {stepRecord && (stepRecord.time || stepRecord.skipped || stepRecord.diaperChanges?.urine || stepRecord.diaperChanges?.popo || stepRecord.diaperChanges?.manyPopo || stepRecord.burpDone || (stepRecord.playOptions && stepRecord.playOptions.length > 0)) && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                  <RecordBadge record={stepRecord} isDark={isDark} />
+            {/* All actions - only show if not skipped */}
+            {!stepRecord?.skipped && (
+              <Box>
+            {/* Time Input - hide for NO_TIME_STEPS */}
+            {!NO_TIME_STEPS.includes(currentStep) && (
+              <Box sx={{ mb: 1.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                  <TextField
+                    type="time"
+                    value={stepRecord?.time || ''}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    size="small"
+                    sx={{
+                      width: 140,
+                      '& input': { textAlign: 'center', fontSize: '1.1rem', padding: '8px 4px' },
+                      '& input[type="time"]::-webkit-calendar-picker-indicator': {
+                        filter: isDark ? 'invert(1)' : 'none',
+                      },
+                    }}
+                  />
+                  <Button variant="contained" size="small" onClick={handleSetNow}>
+                    {getLangText('現在', 'Now')}
+                  </Button>
                 </Box>
-              )}
-            </Box>
+              </Box>
+            )}
 
             {/* Diaper Change - for allowed steps */}
             {DIAPER_ALLOWED_STEPS.includes(currentStep) && (
@@ -633,11 +824,30 @@ const BabyFeedingCycle: React.FC = () => {
               </Box>
             )}
 
-            {/* Bath & Nail Trim - for massage & clean step */}
+            {/* Massage - for massage & clean step */}
             {BATH_ALLOWED_STEPS.includes(currentStep) && (
               <Box sx={{ mb: 1.5 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                  {getLangText('清潔選項', 'Clean Options')}
+                  {getLangText('按摩', 'Massage')}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                  <Button
+                    variant={stepRecord?.massageDone ? 'contained' : 'outlined'}
+                    color={stepRecord?.massageDone ? 'success' : 'primary'}
+                    size="small"
+                    onClick={() => updateCurrentStep({ massageDone: !stepRecord?.massageDone })}
+                  >
+                    ✋ {getLangText('按摩', 'Massage')}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Bath - for massage & clean step */}
+            {BATH_ALLOWED_STEPS.includes(currentStep) && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  {getLangText('淋浴', 'Shower')}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                   <Button
@@ -648,6 +858,104 @@ const BabyFeedingCycle: React.FC = () => {
                   >
                     🛁 {getLangText('淋浴', 'Shower')}
                   </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Milk Amount - for feeding step */}
+            {currentStep === 2 && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  {getLangText('奶量 (ml)', 'Milk (ml)')}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, alignItems: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      const current = stepRecord?.milkAmount ?? settings.baby.defaultMilkAmount;
+                      updateCurrentStep({ milkAmount: Math.max(0, current - 5) });
+                    }}
+                    sx={{ minWidth: 40 }}
+                  >
+                    -
+                  </Button>
+                  <TextField
+                    type="number"
+                    size="small"
+                    value={stepRecord?.milkAmount ?? settings.baby.defaultMilkAmount}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0;
+                      updateCurrentStep({ milkAmount: Math.max(0, value) });
+                    }}
+                    inputProps={{ min: 0, max: 500, step: 5 }}
+                    sx={{ width: 80 }}
+                  />
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      const current = stepRecord?.milkAmount ?? settings.baby.defaultMilkAmount;
+                      updateCurrentStep({ milkAmount: Math.min(500, current + 5) });
+                    }}
+                    sx={{ minWidth: 40 }}
+                  >
+                    +
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Burp - for feeding step */}
+            {BURP_ALLOWED_STEPS.includes(currentStep) && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  {getLangText('掃風', 'Burp')}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                  <Button
+                    variant={stepRecord?.burpDone ? 'contained' : 'outlined'}
+                    color={stepRecord?.burpDone ? 'success' : 'primary'}
+                    size="small"
+                    onClick={handleBurpToggle}
+                  >
+                    ✓ {getLangText('掃風', 'Burp')}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Play Options - for playing step */}
+            {PLAY_ALLOWED_STEPS.includes(currentStep) && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  {getLangText('玩耍選項', 'Play Options')}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
+                  {allPlayOptions.map(option => (
+                    <Button
+                      key={option.id}
+                      variant={stepRecord?.playOptions?.includes(option.id) ? 'contained' : 'outlined'}
+                      color={stepRecord?.playOptions?.includes(option.id) ? 'primary' : 'inherit'}
+                      size="small"
+                      onClick={() => handlePlayOptionToggle(option.id)}
+                      sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}
+                    >
+                      {option.icon}
+                      <Typography variant="caption">{getLangText(option.labelZh, option.labelEn)}</Typography>
+                    </Button>
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {/* Nail Trim - for nail trim step */}
+            {NAIL_TRIM_ALLOWED_STEPS.includes(currentStep) && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                  {getLangText('修剪指甲', 'Trim Nails')}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                   <Button
                     variant={stepRecord?.nailTrim?.leftHand ? 'contained' : 'outlined'}
                     color={stepRecord?.nailTrim?.leftHand ? 'success' : 'primary'}
@@ -684,63 +992,47 @@ const BabyFeedingCycle: React.FC = () => {
               </Box>
             )}
 
-            {/* Burp - for feeding step */}
-            {BURP_ALLOWED_STEPS.includes(currentStep) && (
+            {/* Remark - for remark step */}
+            {REMARK_ALLOWED_STEPS.includes(currentStep) && (
               <Box sx={{ mb: 1.5 }}>
                 <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                  {getLangText('掃風', 'Burp')}
+                  {getLangText('備註', 'Remark')}
                 </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                  <Button
-                    variant={stepRecord?.burpDone ? 'contained' : 'outlined'}
-                    color={stepRecord?.burpDone ? 'success' : 'primary'}
-                    size="small"
-                    onClick={handleBurpToggle}
-                  >
-                    ✓ {getLangText('掃風', 'Burp')}
-                  </Button>
-                </Box>
+                <TextField
+                  multiline
+                  rows={3}
+                  fullWidth
+                  value={stepRecord?.remark || ''}
+                  onChange={(e) => updateCurrentStep({ remark: e.target.value })}
+                  placeholder={getLangText('輸入備註...', 'Enter remark...')}
+                  size="small"
+                />
+              </Box>
+            )}
               </Box>
             )}
 
-            {/* Play Options - for playing step */}
-            {PLAY_ALLOWED_STEPS.includes(currentStep) && (
-              <Box sx={{ mb: 1.5 }}>
-                <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
-                  {getLangText('玩耍選項', 'Play Options')}
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, justifyContent: 'center' }}>
-                  {PLAY_OPTIONS.map(option => (
-                    <Button
-                      key={option.id}
-                      variant={stepRecord?.playOptions?.includes(option.id) ? 'contained' : 'outlined'}
-                      color={stepRecord?.playOptions?.includes(option.id) ? 'primary' : 'inherit'}
-                      size="small"
-                      onClick={() => handlePlayOptionToggle(option.id)}
-                      sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}
-                    >
-                      {option.icon}
-                      <Typography variant="caption">{getLangText(option.labelZh, option.labelEn)}</Typography>
-                    </Button>
-                  ))}
-                </Box>
-              </Box>
-            )}
-
-            {/* Navigation */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
-              <Button variant="outlined" size="small" onClick={handlePrev} disabled={currentStep === 0}>
-                {getLangText('上一步', 'Prev')}
-              </Button>
-              {SKIP_ALLOWED_STEPS.includes(currentStep) && !stepRecord?.skipped && (
-                <Button variant="outlined" color="warning" size="small" onClick={handleSkip}>
-                  {getLangText('跳過', 'Skip')}
+            {/* Navigation - show for required steps (0, 2, 4) and skip-allowed steps (1, 3) */}
+            {(NAV_REQUIRED_STEPS.includes(currentStep) || SKIP_ALLOWED_STEPS.includes(currentStep)) && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2, pt: 2, borderTop: `1px solid ${isDark ? '#444' : '#eee'}` }}>
+                <Button variant="outlined" size="small" onClick={handlePrev} disabled={currentStep === 0 || currentStep > 4}>
+                  {getLangText('上一步', 'Prev')}
                 </Button>
-              )}
-              <Button variant="contained" size="small" onClick={handleNext}>
-                {currentStep === CYCLE_STEPS.length - 1 ? getLangText('完成', 'Done') : getLangText('下一步', 'Next')}
-              </Button>
-            </Box>
+                {SKIP_ALLOWED_STEPS.includes(currentStep) && (
+                  <Button
+                    variant={stepRecord?.skipped ? 'contained' : 'outlined'}
+                    color="warning"
+                    size="small"
+                    onClick={stepRecord?.skipped ? handleUndoSkip : () => setShowSkipDialog(true)}
+                  >
+                    {stepRecord?.skipped ? getLangText('取消跳過', 'Undo Skip') : getLangText('跳過', 'Skip')}
+                  </Button>
+                )}
+                <Button variant="contained" size="small" onClick={handleNext}>
+                  {currentStep === 4 ? getLangText('完成', 'Done') : getLangText('下一步', 'Next')}
+                </Button>
+              </Box>
+            )}
           </CardContent>
         </Card>
         </Container>

@@ -20,7 +20,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LanguageIcon from '@mui/icons-material/Language';
-import HomeIcon from '@mui/icons-material/Home';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
@@ -106,23 +105,6 @@ const AppSettings: React.FC = () => {
                 {getLangText('模組', 'Modules')}
               </Typography>
               <List>
-                <ListItem sx={{ px: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <HomeIcon fontSize="small" />
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1">
-                        {getLangText('家務', 'Household')}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {getLangText('膳食計劃、家務清單', 'Meal plans, chore lists')}
-                      </Typography>
-                    </Box>
-                    <Switch
-                      checked={isModuleEnabled('household')}
-                      onChange={(e) => setModuleEnabled('household', e.target.checked)}
-                    />
-                  </Box>
-                </ListItem>
                 <ListItem sx={{ px: 0 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <ChildCareIcon fontSize="small" />

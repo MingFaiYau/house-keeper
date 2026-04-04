@@ -15,6 +15,7 @@ import NotFoundPage from './pages/NotFound';
 import BabyFeedingCycle from './pages/baby/BabyFeedingCycle';
 import BabyIndex from './pages/baby/BabyIndex';
 import BabyProfilePage from './pages/baby/BabyProfilePage';
+import BabySettings from './pages/baby/BabySettings';
 import BabyPageGuard from './components/baby/BabyPageGuard';
 
 // Components
@@ -107,6 +108,7 @@ const App: React.FC = () => {
           <Route path="/baby/add" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="新增活動" subtitle="Add Activity" /></BabyPageGuard></ModuleGuard>} />
           <Route path="/baby/history" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="歷史記錄" subtitle="History" /></BabyPageGuard></ModuleGuard>} />
           <Route path="/baby/profile" element={<ModuleGuard module="baby"><BabyProfilePage /></ModuleGuard>} />
+          <Route path="/baby/settings" element={<ModuleGuard module="baby"><BabySettings /></ModuleGuard>} />
           <Route path="/baby/stats" element={<ModuleGuard module="baby"><BabyPageGuard><PlaceholderPage title="統計" subtitle="Statistics" /></BabyPageGuard></ModuleGuard>} />
 
           {/* 404 Not Found */}
