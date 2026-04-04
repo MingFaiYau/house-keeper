@@ -25,7 +25,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
 
 // Version is updated automatically by pre-commit hook
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.5';
 
 const AppSettings: React.FC = () => {
   const theme = useTheme();
