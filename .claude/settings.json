@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh run:*)",
+      "Bash(curl -sI \"https://house-keeper.vercel.app/\")"
+    ]
+  }
+}

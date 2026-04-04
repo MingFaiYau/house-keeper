@@ -7,8 +7,6 @@ import {
   CardContent,
   Button,
   IconButton,
-  AppBar,
-  Toolbar,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,7 +14,6 @@ import {
   TextField,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -24,6 +21,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getLangText } from '../../i18n';
 import { useTheme } from '@mui/material';
 import DateSelector from '../../components/DateSelector';
+import PageHeader from '../../components/PageHeader';
 import { useBabyCycleStore } from '../../stores/babyCycleStore';
 import BabySelector from '../../components/baby/BabySelector';
 import { useBabyStore } from '../../stores/babyStore';
@@ -46,6 +44,9 @@ const CYCLE_STEPS: CycleStep[] = [
   { id: 5, nameZh: '修剪指甲', nameEn: 'Trim Nails', icon: '💅' },
   { id: 6, nameZh: '備註', nameEn: 'Remark', icon: '📝' },
 ];
+
+// Required steps (excluding optional steps 5 and 6)
+const REQUIRED_STEPS = [0, 1, 2, 3, 4];
 
 // Steps that require navigation bar (mandatory with time)
 const NAV_REQUIRED_STEPS = [0, 2, 4];
@@ -422,7 +423,8 @@ const BabyFeedingCycle: React.FC = () => {
   const isAllStepsCompleted = (cycleIdx: number) => {
     const cycleData = dateCycles[cycleIdx];
     if (!cycleData) return false;
-    for (let i = 0; i < CYCLE_STEPS.length; i++) {
+    // Only check required steps (0-4), exclude optional steps 5 (trim nails) and 6 (remark)
+    for (const i of REQUIRED_STEPS) {
       const record = cycleData[i];
       // For step 2 (feeding), need time or milkAmount or skipped
       if (i === 2) {
@@ -439,7 +441,8 @@ const BabyFeedingCycle: React.FC = () => {
   const getIncompleteSteps = (cycleIdx: number) => {
     const cycleData = dateCycles[cycleIdx];
     const incomplete: number[] = [];
-    for (let i = 0; i < CYCLE_STEPS.length; i++) {
+    // Only check required steps (0-4), exclude optional steps 5 (trim nails) and 6 (remark)
+    for (const i of REQUIRED_STEPS) {
       const record = cycleData?.[i];
       // For step 2 (feeding), allow milkAmount as alternative to time
       if (i === 2) {
@@ -530,23 +533,12 @@ const BabyFeedingCycle: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar variant="dense" sx={{ minHeight: 48 }}>
-          {/* Left side */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton edge="start" onClick={() => navigate('/baby')} size="small">
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ fontWeight: 600, display: { xs: 'none', sm: 'block' } }}>
-              {getLangText('餵奶週期', 'Feeding Cycle')}
-            </Typography>
-          </Box>
-
-          {/* Spacer */}
-          <Box sx={{ flex: 1 }} />
-
-          {/* Right side */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+      <PageHeader
+        title={getLangText('餵奶週期', 'Feeding Cycle')}
+        leftTitle
+        backPath="/baby"
+        rightButtons={
+          <>
             <BabySelector compact iconOnly />
             <DateSelector
               currentDate={currentDate}
@@ -558,9 +550,9 @@ const BabyFeedingCycle: React.FC = () => {
             <IconButton onClick={() => navigate('/baby/settings')} sx={{ color: isDark ? '#fff' : 'inherit' }} size="small">
               <SettingsIcon />
             </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
+          </>
+        }
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">
