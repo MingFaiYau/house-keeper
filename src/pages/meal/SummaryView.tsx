@@ -4,20 +4,18 @@ import {
   Container,
   Typography,
   useTheme,
-  AppBar,
-  Toolbar,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   Button,
+  IconButton,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import PrintIcon from '@mui/icons-material/Print';
 import CloseIcon from '@mui/icons-material/Close';
+import PageHeader from '../../components/PageHeader';
 import { format, parseISO, getDay } from 'date-fns';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMealPrepStore } from '../../stores/fdhStore';
@@ -217,25 +215,24 @@ const SummaryView: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} className="no-print" sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/household')} sx={{ color: isDark ? '#fff' : 'inherit' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600, color: isDark ? '#fff' : 'inherit' }}>
-            {getTitle()}
-          </Typography>
-          <IconButton onClick={() => navigate(`/household/meal?date=${currentDate}`)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('編輯', 'Edit')}>
-            <RestaurantIcon />
-          </IconButton>
-          <IconButton onClick={() => setQrDialogOpen(true)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('分享', 'Share')}>
-            <QrCodeIcon />
-          </IconButton>
-          <IconButton onClick={handlePrint} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('列印', 'Print')}>
-            <PrintIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      <PageHeader
+        title={getTitle()}
+        leftTitle
+        backPath="/household"
+        rightButtons={
+          <>
+            <IconButton onClick={() => navigate(`/household/meal?date=${currentDate}`)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('編輯', 'Edit')}>
+              <RestaurantIcon />
+            </IconButton>
+            <IconButton onClick={() => setQrDialogOpen(true)} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('分享', 'Share')}>
+              <QrCodeIcon />
+            </IconButton>
+            <IconButton onClick={handlePrint} sx={{ color: isDark ? '#26A69A' : 'inherit' }} title={getLangText('列印', 'Print')}>
+              <PrintIcon />
+            </IconButton>
+          </>
+        }
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="md" sx={{ py: 2, bgcolor: isDark ? '#121212' : 'transparent' }}>

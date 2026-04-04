@@ -6,9 +6,6 @@ import {
   Card,
   CardContent,
   useTheme,
-  AppBar,
-  Toolbar,
-  IconButton,
   TextField,
   Select,
   MenuItem,
@@ -16,6 +13,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Button,
+  IconButton,
   List,
   ListItem,
   ListItemText,
@@ -25,13 +23,13 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+// import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
+import PageHeader from '../../components/PageHeader';
 
 // Default playing options (migrated from preset)
 const DEFAULT_PLAY_OPTIONS = [
@@ -47,7 +45,6 @@ const DEFAULT_PLAY_OPTIONS = [
 
 const BabySettings: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
   const { settings, setBabyDefaults, setDefaultBabySection, addCustomPlayOption, updateCustomPlayOption, deleteCustomPlayOption } = useSettingsStore();
@@ -92,16 +89,10 @@ const BabySettings: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate(-1)}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getLangText('寶寶設定', 'Baby Settings')}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <PageHeader
+        title={getLangText('寶寶設定', 'Baby Settings')}
+        leftTitle
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">

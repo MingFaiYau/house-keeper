@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(gh run:*)",
-      "Bash(curl -sI \"https://house-keeper.vercel.app/\")"
+      "Bash(curl -sI \"https://house-keeper.vercel.app/\")",
+      "Bash(grep -o \"__APP_VERSION__[^,]*\" dist/assets/*.js)",
+      "Bash(grep \"1.0\" dist/assets/*.js)",
+      "Bash(grep -o '\"1\\\\.0\\\\.[0-9]*\"' dist/assets/index-*.js)",
+      "Bash(grep -E \"APP_VERSION|__APP_VERSION__\" dist/assets/index-*.js)",
+      "Bash(grep -E \"1\\\\.0\\\\.[0-9]+\" dist/assets/index-*.js)",
+      "Bash(node -e \"const fs = require\\('fs'\\); const js = fs.readdirSync\\('dist/assets'\\).find\\(f => f.startsWith\\('index-'\\) && f.endsWith\\('.js'\\)\\); const content = fs.readFileSync\\('dist/assets/' + js, 'utf8'\\); const match = content.match\\(/APP_VERSION.*?\\([0-9]+\\\\.[0-9]+\\\\.[0-9]+\\)/\\); console.log\\(match ? match[1] : 'not found'\\)\")",
+      "Bash(ls -la dist/assets/*.js)",
+      "Bash(grep -o '\\\\[App\\\\] Version: [0-9]*\\\\.[0-9]*\\\\.[0-9]*' dist/assets/index-*.js)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5174/src/main.tsx)",
+      "Bash(curl -s \"http://localhost:5174/@react-refresh\")"
     ]
   }
 }

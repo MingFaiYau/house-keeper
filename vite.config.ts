@@ -13,6 +13,9 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  optimizeDeps: {
+    include: ['vite'],
+  },
   plugins: [
     react(),
     VitePWA({

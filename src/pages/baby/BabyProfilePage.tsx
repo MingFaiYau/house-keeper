@@ -7,8 +7,6 @@ import {
   CardContent,
   Button,
   IconButton,
-  AppBar,
-  Toolbar,
   List,
   ListItem,
   ListItemAvatar,
@@ -23,8 +21,7 @@ import {
   Chip,
   useTheme,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+// import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -33,12 +30,12 @@ import FemaleIcon from '@mui/icons-material/Female';
 import StarIcon from '@mui/icons-material/Star';
 import { getLangText } from '../../i18n';
 import { useBabyStore } from '../../stores/babyStore';
+import PageHeader from '../../components/PageHeader';
 import { getAllBabyCycleDays, deleteBabyCycleData } from '../../services/fdhStorage';
 import type { BabyProfile } from '../../types/fdh';
 
 const BabyProfilePage: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
   const { profiles, defaultBabyId, loadSettings, addProfile, updateProfile, deleteProfile, setDefaultBaby } = useBabyStore();
@@ -151,19 +148,16 @@ const BabyProfilePage: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/baby')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getLangText('寶寶資料', 'Baby Profile')}
-          </Typography>
+      <PageHeader
+        title={getLangText('寶寶資料', 'Baby Profile')}
+        leftTitle
+        backPath="/baby"
+        rightButtons={
           <IconButton onClick={() => handleOpenDialog()}>
             <AddIcon />
           </IconButton>
-        </Toolbar>
-      </AppBar>
+        }
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">

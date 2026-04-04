@@ -7,8 +7,6 @@ import {
   CardContent,
   Divider,
   useTheme,
-  AppBar,
-  Toolbar,
   IconButton,
   Select,
   MenuItem,
@@ -25,7 +23,6 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ListAltIcon from '@mui/icons-material/ListAlt';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
@@ -34,6 +31,7 @@ import { useMealPrepStore } from '../../stores/fdhStore';
 import { type DishCourse, type Meal, type MealPeopleInfo } from '../../types/fdh';
 import { getLangText } from '../../i18n';
 import DateSelector from '../../components/DateSelector';
+import PageHeader from '../../components/PageHeader';
 
 const MEAL_TYPES = [
   { id: 'breakfast', icon: '🌅', labelZh: '早餐', labelEn: 'Breakfast' },
@@ -367,22 +365,21 @@ const DailyPlan: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/household')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getTitle()}
-          </Typography>
-          <IconButton onClick={() => setResetDialogOpen(true)} title={getLangText('重設', 'Reset')}>
-            <RestartAltIcon />
-          </IconButton>
-          <IconButton onClick={() => navigate(`/household/meal/summary?date=${currentDate}`)} title={getLangText('總結', 'Summary')}>
-            <ListAltIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+      <PageHeader
+        title={getTitle()}
+        leftTitle
+        backPath="/household"
+        rightButtons={
+          <>
+            <IconButton onClick={() => setResetDialogOpen(true)} title={getLangText('重設', 'Reset')}>
+              <RestartAltIcon />
+            </IconButton>
+            <IconButton onClick={() => navigate(`/household/meal/summary?date=${currentDate}`)} title={getLangText('總結', 'Summary')}>
+              <ListAltIcon />
+            </IconButton>
+          </>
+        }
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">

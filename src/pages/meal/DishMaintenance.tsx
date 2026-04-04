@@ -8,16 +8,13 @@ import {
   TextField,
   Button,
   useTheme,
-  AppBar,
-  Toolbar,
   IconButton,
   Chip,
   Stack,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PageHeader from '../../components/PageHeader';
 import { useMealPrepStore } from '../../stores/fdhStore';
 import { DEFAULT_DISHES, type DishItem } from '../../types/fdh';
 import { getLangText } from '../../i18n';
@@ -25,7 +22,6 @@ import IconPicker from '../../components/IconPicker';
 
 const DishMaintenance: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
   const { settings, loadSettings, updateSettings } = useMealPrepStore();
@@ -62,16 +58,11 @@ const DishMaintenance: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/household')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getTitle()}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <PageHeader
+        title={getTitle()}
+        leftTitle
+        backPath="/household"
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="lg">

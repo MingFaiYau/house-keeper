@@ -6,23 +6,19 @@ import {
   Card,
   CardContent,
   useTheme,
-  AppBar,
-  Toolbar,
-  IconButton,
   ToggleButton,
   ToggleButtonGroup,
   Switch,
   List,
   ListItem,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LanguageIcon from '@mui/icons-material/Language';
 import ChildCareIcon from '@mui/icons-material/ChildCare';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getLangText } from '../../i18n';
+import PageHeader from '../../components/PageHeader';
 
 // Version is updated automatically by pre-commit hook
 // @ts-expect-error __APP_VERSION__ is defined in vite.config.ts
@@ -30,23 +26,17 @@ const APP_VERSION = __APP_VERSION__ || 'dev';
 
 const AppSettings: React.FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const isDark = theme.palette.mode === 'dark';
 
   const { settings: appSettings, setLanguage, setTheme, setModuleEnabled, isModuleEnabled } = useSettingsStore();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: isDark ? '#121212' : '#f5f5f5' }}>
-      <AppBar position="sticky" color="default" elevation={1} sx={{ bgcolor: isDark ? '#1e1e1e' : '#fff' }}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/home')}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            {getLangText('設定', 'Settings')}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <PageHeader
+        title={getLangText('設定', 'Settings')}
+        leftTitle
+        backPath="/home"
+      />
 
       <Box sx={{ flex: 1, overflow: 'auto', py: 1, pb: 10 }}>
         <Container maxWidth="sm">
