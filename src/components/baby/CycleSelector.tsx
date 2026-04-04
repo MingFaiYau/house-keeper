@@ -3,12 +3,14 @@ import { Box, Typography, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import type { StepRecord } from '../../types/feeding';
 
 interface CycleSelectorProps {
   currentCycle: number;
   cycles: number[];
   isDark: boolean;
   isCycleComplete: boolean;
+  getCycleRecord?: (cycleIdx: number) => StepRecord | undefined;
   onCycleChange: (cycle: number) => void;
   onAddCycle: () => void;
 }
@@ -18,10 +20,20 @@ export const CycleSelector: React.FC<CycleSelectorProps> = ({
   cycles,
   isDark,
   isCycleComplete,
+  getCycleRecord,
   onCycleChange,
   onAddCycle,
 }) => {
   if (cycles.length === 0) return null;
+
+  // Get feeding time from cycle record (step 2 = feeding step)
+  const getCycleTime = (cycleIdx: number): string | null => {
+    if (!getCycleRecord) return null;
+    const record = getCycleRecord(cycleIdx);
+    // Step 2 is feeding - use milkAmount time if no time, use the feeding time
+    const feedingRecord = record as StepRecord | undefined;
+    return feedingRecord?.time || null;
+  };
 
   return (
     <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -33,43 +45,46 @@ export const CycleSelector: React.FC<CycleSelectorProps> = ({
         <ChevronLeftIcon />
       </IconButton>
 
-      {cycles.map((cycleIdx) => (
-        <Box
-          key={cycleIdx}
-          onClick={() => onCycleChange(cycleIdx)}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            px: 2,
-            py: 1,
-            borderRadius: 1,
-            cursor: 'pointer',
-            bgcolor: isCycleComplete
-              ? (isDark ? '#2e7d32' : '#c8e6c9')
-              : currentCycle === cycleIdx
-                ? 'primary.main'
-                : 'transparent',
-            border: `1px solid ${
-              isCycleComplete
-                ? (isDark ? '#4caf50' : '#4caf50')
+      {cycles.map((cycleIdx) => {
+        const feedingTime = getCycleTime(cycleIdx);
+        return (
+          <Box
+            key={cycleIdx}
+            onClick={() => onCycleChange(cycleIdx)}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+              borderRadius: 1,
+              cursor: 'pointer',
+              bgcolor: isCycleComplete
+                ? (isDark ? '#2e7d32' : '#c8e6c9')
                 : currentCycle === cycleIdx
                   ? 'primary.main'
-                  : isDark ? '#555' : '#ccc'
-            }`,
-            color: currentCycle === cycleIdx || isCycleComplete ? '#fff' : 'inherit',
-          }}
-        >
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            #{cycleIdx + 1}
-          </Typography>
-          {isCycleComplete && (
-            <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>
-              ✓
+                  : 'transparent',
+              border: `1px solid ${
+                isCycleComplete
+                  ? (isDark ? '#4caf50' : '#4caf50')
+                  : currentCycle === cycleIdx
+                    ? 'primary.main'
+                    : isDark ? '#555' : '#ccc'
+              }`,
+              color: currentCycle === cycleIdx || isCycleComplete ? '#fff' : 'inherit',
+            }}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {feedingTime || `#${cycleIdx + 1}`}
             </Typography>
-          )}
-        </Box>
-      ))}
+            {isCycleComplete && (
+              <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>
+                ✓
+              </Typography>
+            )}
+          </Box>
+        );
+      })}
 
       <IconButton size="small" onClick={onAddCycle}>
         <AddIcon />

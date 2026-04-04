@@ -590,12 +590,14 @@ const BabyFeedingCycle: React.FC = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center' }}>
                 {Object.keys(dateCycles).map((cycleIdx) => {
                   const rec = dateCycles[parseInt(cycleIdx)] || {};
-                  // Only use step 0 (wake up) and step 4 (sleeping) for time display
-                  const startTime = rec[0]?.time;
-                  const endTime = rec[4]?.time;
-                  const timeDisplay = startTime || endTime
-                    ? `(${startTime || ''} - ${endTime || ''})`
-                    : '';
+                  // Use feeding time (step 2) for display
+                  const feedingTime = rec[2]?.time;
+                  const milkAmount = rec[2]?.milkAmount;
+                  const timeDisplay = feedingTime
+                    ? `(${feedingTime})`
+                    : milkAmount
+                      ? `(${milkAmount}ml)`
+                      : '';
                   const cycleLabel = getLangText('第' + (parseInt(cycleIdx) + 1) + '週期', 'Cycle ' + (parseInt(cycleIdx) + 1));
                   const isCycleComplete = isAllStepsCompleted(parseInt(cycleIdx));
                   return (
