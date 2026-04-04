@@ -204,7 +204,7 @@ const BabySelector: React.FC<BabySelectorProps> = ({ compact = false, iconOnly =
           </Typography>
           <Button
             variant="contained"
-            onClick={() => { setShowInfo(false); handleOpen(null); }}
+            onClick={() => setShowInfo(false)}
           >
             {getLangText('前往設定', 'Go to Settings')}
           </Button>
